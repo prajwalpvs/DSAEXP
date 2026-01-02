@@ -928,7 +928,7 @@ textarea:disabled {
   gap: 8px;
 }
 
-.samples-section
+.samples-section {
   margin-bottom: 30px;
   padding: 20px;
   background: linear-gradient(135deg, #f0f5ff 0%, #f9f9f9 100%);

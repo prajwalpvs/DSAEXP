@@ -66,6 +66,7 @@ export default function App() {
   const [showHistory, setShowHistory] = useState(false);
   const [showFavorites, setShowFavorites] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [toast, setToast] = useState('');
   const [toastTimeout, setToastTimeout] = useState(null);
   const [lastApiCall, setLastApiCall] = useState(0);
   const [darkMode, setDarkMode] = useState(() => {
