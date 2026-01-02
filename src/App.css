@@ -1,7 +1,7 @@
 /* ============================================
    Google Fonts Import
    ============================================ */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap');
 
 /* ============================================
    Global Styles
@@ -18,15 +18,16 @@ html, body, #root {
 }
 
 body {
-  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Inter', 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #4facfe);
   background-size: 400% 400%;
   animation: gradientShift 15s ease infinite;
   min-height: 100vh;
   padding: 20px;
-  color: #333;
+  color: #2d3748;
   font-weight: 400;
-  line-height: 1.6;
+  line-height: 1.7;
+  font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition: background 0.3s ease;
@@ -170,12 +171,12 @@ body {
    Main Container
    ============================================ */
 .container {
-  width: 100%;
-  max-width: 1200px;
+  width: 85%;
+  max-width: 1400px;
   margin: 0 auto;
   background: white;
   border-radius: 20px;
-  padding: 50px;
+  padding: 60px;
   box-shadow: 
     0 20px 60px rgba(0, 0, 0, 0.15),
     0 0 1px rgba(0, 0, 0, 0.1);
@@ -203,41 +204,76 @@ body {
 h1, h2, h3, h4, h5, h6 {
   font-family: 'Poppins', sans-serif;
   font-weight: 700;
-  margin-bottom: 12px;
-  color: #2d3748;
+  margin-bottom: 16px;
+  color: #1a202c;
   letter-spacing: -0.5px;
 }
 
 h1 {
-  font-size: 3em;
+  font-size: 3.2rem;
+  font-weight: 900;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   text-align: center;
-  margin-bottom: 10px;
-  font-weight: 800;
-  letter-spacing: -1px;
-  line-height: 1.2;
+  margin-bottom: 12px;
+  letter-spacing: -1.5px;
+  line-height: 1.1;
 }
 
 h2 {
-  font-size: 1.8em;
+  font-size: 2rem;
+  font-weight: 800;
   color: #667eea;
-  margin-top: 25px;
+  margin-top: 32px;
+  margin-bottom: 20px;
+  line-height: 1.3;
 }
 
 h3 {
-  font-size: 1.4em;
+  font-size: 1.5rem;
+  font-weight: 700;
   color: #764ba2;
-  margin-top: 18px;
+  margin-top: 24px;
+  margin-bottom: 16px;
+  line-height: 1.3;
+}
+
+h4 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-top: 20px;
+  margin-bottom: 12px;
+}
+
+h5 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-top: 16px;
+  margin-bottom: 12px;
+}
+
+h6 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-top: 12px;
+  margin-bottom: 10px;
 }
 
 p {
-  font-size: 1.05em;
+  font-size: 1.05rem;
   color: #4a5568;
   line-height: 1.8;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
+  font-weight: 400;
+  letter-spacing: 0.3px;
+}
+
+strong, b {
+  font-weight: 700;
+  color: #667eea;
+  font-size: 1.05em;
 }
 
 .subtitle {
@@ -246,10 +282,11 @@ p {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin-bottom: 35px;
-  font-size: 1.25em;
-  line-height: 1.6;
+  margin-bottom: 40px;
+  font-size: 1.3rem;
+  line-height: 1.7;
   font-weight: 500;
+  letter-spacing: 0.2px;
 }
 
 /* ============================================
@@ -521,87 +558,108 @@ textarea:disabled {
    Result Section
    ============================================ */
 .result {
-  margin-top: 30px;
-  padding: 35px;
+  margin-top: 40px;
+  padding: 45px;
   background: linear-gradient(135deg, #f8fafc 0%, #f0f5ff 100%);
-  border-radius: 14px;
-  border-left: 5px solid #667eea;
-  line-height: 1.8;
+  border-radius: 16px;
+  border-left: 6px solid #667eea;
+  line-height: 1.9;
   color: #2d3748;
   animation: slideIn 0.4s ease-out;
-  box-shadow: 0 2px 12px rgba(102, 126, 234, 0.08);
-  font-size: 1.05em;
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.12);
+  font-size: 1.05rem;
+  font-weight: 400;
 }
 
 .result h1 {
   color: #667eea;
-  margin-top: 30px;
-  margin-bottom: 18px;
-  font-size: 2.2em;
-  font-weight: 800;
+  margin-top: 35px;
+  margin-bottom: 22px;
+  font-size: 2.3rem;
+  font-weight: 900;
   text-align: left;
   background: none;
   -webkit-text-fill-color: unset;
+  letter-spacing: -0.5px;
 }
 
 .result h2 {
   color: #667eea;
-  margin-top: 28px;
-  margin-bottom: 16px;
-  font-size: 1.7em;
-  font-weight: 700;
+  margin-top: 32px;
+  margin-bottom: 20px;
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: -0.3px;
 }
 
 .result h3 {
   color: #764ba2;
-  margin-top: 20px;
-  margin-bottom: 14px;
-  font-size: 1.35em;
-  font-weight: 700;
+  margin-top: 28px;
+  margin-bottom: 18px;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.2px;
 }
 
 .result p {
-  margin-bottom: 18px;
-  line-height: 1.8;
+  margin-bottom: 20px;
+  line-height: 1.9;
   color: #4a5568;
   font-weight: 400;
+  font-size: 1.05rem;
+}
+
+.result strong,
+.result b {
+  font-weight: 800;
+  color: #667eea;
+  font-size: 1.08em;
 }
 
 .result ul,
 .result ol {
-  margin-left: 30px;
-  margin-bottom: 18px;
+  margin-left: 32px;
+  margin-bottom: 22px;
   padding: 0;
 }
 
 .result li {
-  margin-bottom: 12px;
-  line-height: 1.8;
+  margin-bottom: 14px;
+  line-height: 1.9;
   color: #4a5568;
   font-weight: 400;
+  font-size: 1.05rem;
+  list-style: disc;
+}
+
+.result li strong {
+  color: #667eea;
+  font-weight: 800;
 }
 
 .result code {
   background-color: #edf2f7;
-  padding: 4px 8px;
-  border-radius: 5px;
+  padding: 6px 12px;
+  border-radius: 6px;
   font-family: 'Fira Code', 'Courier New', monospace;
-  font-size: 0.95em;
+  font-size: 0.95rem;
   color: #c53030;
-  font-weight: 500;
+  font-weight: 600;
+  display: inline-block;
 }
 
 .result pre {
   background-color: #1e1e1e;
   color: #d4d4d4;
-  padding: 15px;
-  border-radius: 8px;
+  padding: 20px;
+  border-radius: 10px;
   overflow-x: auto;
-  margin: 20px 0;
+  margin: 24px 0;
   font-family: 'Fira Code', monospace;
-  font-size: 0.95em;
-  line-height: 1.6;
+  font-size: 0.95rem;
+  line-height: 1.7;
   border: 1px solid #2d2d2d;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .result pre code {
@@ -609,29 +667,175 @@ textarea:disabled {
   color: #d4d4d4;
   padding: 0;
   border-radius: 0;
-  font-size: 1em;
+  font-size: 1rem;
   font-weight: 400;
+}
+
+/* Formatted Response Renderer Styles */
+.formatted-response {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.response-h1 {
+  color: #667eea;
+  margin-top: 35px;
+  margin-bottom: 22px;
+  font-size: 2.3rem;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+}
+
+.response-h2 {
+  color: #667eea;
+  margin-top: 32px;
+  margin-bottom: 20px;
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  line-height: 1.3;
+}
+
+.response-h3 {
+  color: #764ba2;
+  margin-top: 28px;
+  margin-bottom: 18px;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+  line-height: 1.3;
+}
+
+.response-paragraph {
+  margin-bottom: 20px;
+  line-height: 1.9;
+  color: #4a5568;
+  font-weight: 400;
+  font-size: 1.05rem;
+}
+
+.response-paragraph strong {
+  color: #667eea;
+  font-weight: 800;
+  font-size: 1.08em;
+}
+
+.response-list {
+  margin-left: 32px;
+  margin-bottom: 22px;
+  padding: 0;
+  list-style: disc;
+}
+
+.response-list li {
+  margin-bottom: 14px;
+  line-height: 1.9;
+  color: #4a5568;
+  font-weight: 400;
+  font-size: 1.05rem;
+}
+
+.response-list li strong {
+  color: #667eea;
+  font-weight: 800;
+}
+
+.response-code-block {
+  background-color: #1e1e1e;
+  color: #d4d4d4;
+  padding: 20px;
+  border-radius: 10px;
+  overflow-x: auto;
+  margin: 24px 0;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  border: 1px solid #2d2d2d;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 /* ============================================
    Responsive Design
    ============================================ */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .container {
-    padding: 20px;
+    width: 90%;
+    padding: 50px 40px;
+  }
+}
+
+@media (max-width: 768px) {
+  body {
+    font-size: 15px;
+    padding: 12px;
+  }
+
+  .container {
+    width: 100%;
+    padding: 30px 20px;
+    border-radius: 16px;
   }
 
   h1 {
-    font-size: 1.8em;
+    font-size: 2.2rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+  }
+
+  p {
+    font-size: 1rem;
+    line-height: 1.7;
   }
 
   .result {
-    padding: 15px;
+    padding: 30px 20px;
+    margin-top: 30px;
+    border-left-width: 5px;
+  }
+
+  .result h1 {
+    font-size: 1.8rem;
+  }
+
+  .result h2 {
+    font-size: 1.5rem;
+  }
+
+  .result h3 {
+    font-size: 1.25rem;
+    margin-top: 20px;
+    margin-bottom: 14px;
+  }
+
+  .result p,
+  .result li {
+    font-size: 1rem;
+  }
+
+  .response-h1 {
+    font-size: 1.8rem;
+  }
+
+  .response-h2 {
+    font-size: 1.5rem;
+  }
+
+  .response-h3 {
+    font-size: 1.25rem;
   }
 
   .result pre {
-    padding: 10px;
-    font-size: 0.85em;
+    padding: 12px;
+    font-size: 0.85rem;
+    margin: 16px 0;
   }
 
   .samples-grid {
@@ -649,6 +853,58 @@ textarea:disabled {
 
   .result-actions {
     flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .section-grid {
+    grid-template-columns: 1fr;
+    padding: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 20px 15px;
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+
+  h2 {
+    font-size: 1.3rem;
+  }
+
+  h3 {
+    font-size: 1.1rem;
+  }
+
+  .result {
+    padding: 20px 15px;
+  }
+
+  .result h1 {
+    font-size: 1.6rem;
+  }
+
+  .result h2 {
+    font-size: 1.3rem;
+  }
+
+  .result h3 {
+    font-size: 1.1rem;
+  }
+
+  .result-actions {
+    flex-direction: column;
+  }
+
+  .result-actions button {
+    width: 100%;
+  }
+
+  p {
+    font-size: 0.95rem;
   }
 }
 

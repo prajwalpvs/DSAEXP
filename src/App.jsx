@@ -6,6 +6,129 @@ import html2canvas from 'html2canvas';
 import './App.css';
 
 // ============================================
+// RESPONSE FORMATTER FUNCTION
+// ============================================
+// This function converts Gemini API markdown-style responses
+// to properly formatted HTML elements
+function formatGeminiResponse(text) {
+  if (!text) return [];
+  
+  const lines = text.split('\n');
+  const elements = [];
+  let codeBlock = '';
+  let codeLanguage = '';
+  let inCodeBlock = false;
+  let listItems = [];
+  let isInList = false;
+
+  lines.forEach((line, index) => {
+    // Handle code blocks
+    if (line.startsWith('```')) {
+      if (inCodeBlock) {
+        // End of code block
+        inCodeBlock = false;
+        elements.push({
+          type: 'code',
+          language: codeLanguage || 'python',
+          code: codeBlock.trim()
+        });
+        codeBlock = '';
+        codeLanguage = '';
+      } else {
+        // Start of code block
+        inCodeBlock = true;
+        codeLanguage = line.replace('```', '').trim() || 'python';
+      }
+      return;
+    }
+
+    if (inCodeBlock) {
+      codeBlock += line + '\n';
+      return;
+    }
+
+    // Close list if line doesn't start with *
+    if (isInList && !line.trim().startsWith('*')) {
+      if (listItems.length > 0) {
+        elements.push({
+          type: 'list',
+          items: listItems
+        });
+        listItems = [];
+      }
+      isInList = false;
+    }
+
+    // Handle bullet lists
+    if (line.trim().startsWith('* ')) {
+      isInList = true;
+      const item = line.replace(/^\*\s+/, '').trim();
+      // Remove bold markers from list items
+      const cleanItem = item.replace(/\*\*/g, '');
+      listItems.push(cleanItem);
+      return;
+    }
+
+    // Handle headings (### or ## style)
+    if (line.startsWith('### ')) {
+      elements.push({
+        type: 'h3',
+        text: line.replace('### ', '').trim()
+      });
+      return;
+    }
+
+    if (line.startsWith('## ')) {
+      elements.push({
+        type: 'h2',
+        text: line.replace('## ', '').trim()
+      });
+      return;
+    }
+
+    if (line.startsWith('# ')) {
+      elements.push({
+        type: 'h1',
+        text: line.replace('# ', '').trim()
+      });
+      return;
+    }
+
+    // Handle regular paragraphs with bold text
+    if (line.trim().length > 0) {
+      elements.push({
+        type: 'paragraph',
+        text: line.trim()
+      });
+    }
+  });
+
+  // Close any unclosed list
+  if (listItems.length > 0) {
+    elements.push({
+      type: 'list',
+      items: listItems
+    });
+  }
+
+  // Close any unclosed code block
+  if (inCodeBlock && codeBlock) {
+    elements.push({
+      type: 'code',
+      language: codeLanguage || 'python',
+      code: codeBlock.trim()
+    });
+  }
+
+  return elements;
+}
+
+// Helper function to convert **text** to <strong>text</strong>
+function formatBoldText(text) {
+  return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+}
+
+// ============================================
 // CONSTANTS
 // ============================================
 const STORAGE_KEYS = {
@@ -615,7 +738,7 @@ Format your answer:
               </button>
             </div>
             <div className="result">
-              <MarkdownRenderer content={answer} />
+              <FormattedResponseRenderer content={answer} />
             </div>
           </div>
         )}
@@ -634,121 +757,79 @@ Format your answer:
 }
 
 // ============================================
-// MARKDOWN RENDERER COMPONENT WITH SYNTAX HIGHLIGHTING
+// FORMATTED RESPONSE RENDERER COMPONENT
 // ============================================
-// This component converts markdown-style text to styled React elements
-function MarkdownRenderer({ content }) {
-  const lines = content.split('\n');
-  const elements = [];
-  let codeBlock = '';
-  let codeLanguage = '';
-  let inCodeBlock = false;
+function FormattedResponseRenderer({ content }) {
+  const elements = formatGeminiResponse(content);
 
-  lines.forEach((line, index) => {
-    // Check if this line starts a code block
-    if (line.startsWith('```')) {
-      if (inCodeBlock) {
-        // End of code block - render with syntax highlighting
-        inCodeBlock = false;
-        elements.push(
-          <div key={`code-${index}`} className="code-container">
-            <SyntaxHighlighter 
-              language={codeLanguage || 'python'} 
-              style={atomOneDark}
-              showLineNumbers={true}
-              customStyle={{
-                borderRadius: '8px',
-                padding: '15px',
-                fontSize: '0.95em',
-                lineHeight: '1.5',
-                margin: '15px 0'
-              }}
-            >
-              {codeBlock.trim()}
-            </SyntaxHighlighter>
-          </div>
-        );
-        codeBlock = '';
-        codeLanguage = '';
-      } else {
-        // Start of code block
-        inCodeBlock = true;
-        codeLanguage = line.replace('```', '').trim() || 'python';
-      }
-      return;
-    }
-
-    // If we're inside a code block, accumulate the code
-    if (inCodeBlock) {
-      codeBlock += line + '\n';
-      return;
-    }
-
-    // Handle headings (markdown style)
-    if (line.startsWith('### ')) {
-      elements.push(
-        <h3 key={`h3-${index}`}>{line.replace('### ', '')}</h3>
-      );
-      return;
-    }
-    if (line.startsWith('## ')) {
-      elements.push(
-        <h2 key={`h2-${index}`}>{line.replace('## ', '')}</h2>
-      );
-      return;
-    }
-    if (line.startsWith('# ')) {
-      elements.push(
-        <h1 key={`h1-${index}`}>{line.replace('# ', '')}</h1>
-      );
-      return;
-    }
-
-    // Handle bullet points
-    if (line.startsWith('- ')) {
-      elements.push(
-        <li key={`li-${index}`}>{line.replace('- ', '')}</li>
-      );
-      return;
-    }
-
-    // Handle numbered lists
-    if (/^\d+\. /.test(line)) {
-      elements.push(
-        <li key={`li-${index}`}>{line.replace(/^\d+\. /, '')}</li>
-      );
-      return;
-    }
-
-    // Handle regular paragraphs
-    if (line.trim()) {
-      elements.push(
-        <p key={`p-${index}`}>{line}</p>
-      );
-    }
-  });
-
-  // If there's an unclosed code block, close it
-  if (inCodeBlock && codeBlock) {
-    elements.push(
-      <div key="code-final" className="code-container">
-        <SyntaxHighlighter 
-          language={codeLanguage || 'python'} 
-          style={atomOneDark}
-          showLineNumbers={true}
-          customStyle={{
-            borderRadius: '8px',
-            padding: '15px',
-            fontSize: '0.95em',
-            lineHeight: '1.5',
-            margin: '15px 0'
-          }}
-        >
-          {codeBlock.trim()}
-        </SyntaxHighlighter>
-      </div>
-    );
-  }
-
-  return <>{elements}</>;
+  return (
+    <div className="formatted-response">
+      {elements.map((element, index) => {
+        switch (element.type) {
+          case 'h1':
+            return (
+              <h1 key={index} className="response-h1">
+                {element.text}
+              </h1>
+            );
+          case 'h2':
+            return (
+              <h2 key={index} className="response-h2">
+                {element.text}
+              </h2>
+            );
+          case 'h3':
+            return (
+              <h3 key={index} className="response-h3">
+                {element.text}
+              </h3>
+            );
+          case 'paragraph':
+            return (
+              <p
+                key={index}
+                className="response-paragraph"
+                dangerouslySetInnerHTML={{
+                  __html: formatBoldText(element.text)
+                }}
+              />
+            );
+          case 'list':
+            return (
+              <ul key={index} className="response-list">
+                {element.items.map((item, itemIndex) => (
+                  <li
+                    key={itemIndex}
+                    dangerouslySetInnerHTML={{
+                      __html: formatBoldText(item)
+                    }}
+                  />
+                ))}
+              </ul>
+            );
+          case 'code':
+            return (
+              <div key={index} className="code-container">
+                <SyntaxHighlighter
+                  language={element.language}
+                  style={atomOneDark}
+                  showLineNumbers={true}
+                  customStyle={{
+                    borderRadius: '8px',
+                    padding: '15px',
+                    fontSize: '0.95em',
+                    lineHeight: '1.5',
+                    margin: '15px 0'
+                  }}
+                >
+                  {element.code}
+                </SyntaxHighlighter>
+              </div>
+            );
+          default:
+            return null;
+        }
+      })}
+    </div>
+  );
 }
