@@ -371,7 +371,7 @@ Format your answer:
 
         {/* Sample Questions Section */}
         <div className="samples-section">
-          <p>💡 Try these popular questions:</p>
+          <p>🦁 🌿 Try these popular questions: 🦁 🌿</p>
           <div className="samples-grid">
             {SAMPLE_QUESTIONS.map((q, i) => (
               <button
@@ -386,12 +386,44 @@ Format your answer:
           </div>
         </div>
 
+        {/* Colorful Info Grid - Jungle Theme */}
+        <div className="section-grid">
+          <div className="section-card card-history">
+            <div className="section-title">
+              <span className="section-icon">📚</span>
+              Quick Tips
+            </div>
+            <p style={{fontSize: '0.9em', margin: 0}}>Save questions to history and build your personal learning library.</p>
+          </div>
+          <div className="section-card card-favorites">
+            <div className="section-title">
+              <span className="section-icon">❤️</span>
+              Favorites
+            </div>
+            <p style={{fontSize: '0.9em', margin: 0}}>Star your favorite questions for quick access later.</p>
+          </div>
+          <div className="section-card card-input">
+            <div className="section-title">
+              <span className="section-icon">🎯</span>
+              Ask Anything
+            </div>
+            <p style={{fontSize: '0.9em', margin: 0}}>Choose your difficulty level for better explanations.</p>
+          </div>
+          <div className="section-card card-result">
+            <div className="section-title">
+              <span className="section-icon">🚀</span>
+              Export
+            </div>
+            <p style={{fontSize: '0.9em', margin: 0}}>Download answers as PDF or Markdown files.</p>
+          </div>
+        </div>
+
         {/* Input Section */}
         <div className="input-section">
-          <label htmlFor="question">Your Question:</label>
+          <label htmlFor="question">🦒 Your Question: 🦒</label>
           <textarea
             id="question"
-            placeholder="Example: Explain binary search with a Python example..."
+            placeholder="🐢 Example: Explain binary search with a Python example... 🐢"
             rows="5"
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
