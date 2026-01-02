@@ -42,13 +42,33 @@ export default function App() {
   
   // UI states
   const [showHistory, setShowHistory] = useState(false);
+  const [showFavorites, setShowFavorites] = useState(false);
   const [copied, setCopied] = useState(false);
   const [toast, setToast] = useState('');
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('darkMode');
+    return saved ? JSON.parse(saved) : false;
+  });
+  const [difficulty, setDifficulty] = useState(() => {
+    const saved = localStorage.getItem('difficulty');
+    return saved || 'beginner';
+  });
 
   // ============================================
   // HELPER FUNCTIONS
   // ============================================
   
+  // Apply dark mode to document
+  useEffect(() => {
+    localStorage.setItem('darkMode', JSON.stringify(darkMode));
+    document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+  }, [darkMode]);
+
+  // Save difficulty level
+  useEffect(() => {
+    localStorage.setItem('difficulty', difficulty);
+  }, [difficulty]);
+
   // Show toast notification
   const showToast = (message) => {
     setToast(message);
@@ -67,6 +87,16 @@ export default function App() {
     const updated = [newEntry, ...history].slice(0, 10);
     setHistory(updated);
     localStorage.setItem('questionHistory', JSON.stringify(updated));
+  };
+
+  // Clear history
+  const clearHistory = () => {
+    if (window.confirm('Are you sure you want to clear all history?')) {
+      setHistory([]);
+      localStorage.removeItem('questionHistory');
+      showToast('🗑️ History cleared');
+      setShowHistory(false);
+    }
   };
 
   // Toggle favorite
@@ -132,24 +162,30 @@ export default function App() {
 
   // BUILD THE SYSTEM PROMPT
   // ============================================
-  // This prompt tells Gemini how to answer questions like a teacher for beginners
+  // This prompt tells Gemini how to answer questions based on difficulty level
   const buildSystemPrompt = () => {
-    return `You are an expert teacher explaining DSA and LeetCode problems to complete beginners.
+    const difficultyGuides = {
+      beginner: `Use very simple language. Avoid jargon. Use analogies with everyday objects.`,
+      intermediate: `Explain technical details. Include complexity analysis (Big O). Discuss trade-offs.`,
+      advanced: `Include optimization techniques. Discuss edge cases. Compare different approaches.`
+    };
+
+    return `You are an expert teacher explaining DSA and LeetCode problems. 
+Difficulty level: ${difficulty.toUpperCase()} - ${difficultyGuides[difficulty]}
 
 Important instructions:
-1. Use simple, easy-to-understand language. Avoid jargon when possible.
-2. Break down the concept step-by-step.
-3. Always provide at least one Python code example that is clear and well-commented.
-4. Include a simple ASCII diagram or text visualization when it helps explain the concept.
-5. Format your response with clear headings and bullet points.
-6. Start with a simple explanation, then go deeper.
+1. Match the difficulty level above.
+2. Always provide Python code examples that are clear and well-commented.
+3. Include a simple ASCII diagram when helpful.
+4. Format with clear headings and bullet points.
+5. Add Big O complexity analysis (Time & Space).
 
-Format your answer like this:
-- A brief simple explanation (1-2 sentences)
-- Step-by-step breakdown (numbered or bulleted)
-- A Python code example (wrap in triple backticks: \`\`\`python)
-- A simple diagram or visualization when helpful
-- Key takeaways or tips`;
+Format your answer:
+- Brief explanation
+- Step-by-step breakdown
+- Python code example (wrap in \`\`\`python)
+- Complexity Analysis (Time & Space)
+- Key tips and edge cases`;
   };
 
   // ============================================
@@ -254,15 +290,31 @@ Format your answer like this:
           <div className="header-actions">
             <button 
               className="history-btn"
-              onClick={() => setShowHistory(!showHistory)}
+              onClick={() => {setShowHistory(!showHistory); setShowFavorites(false);}}
             >
               📚 History ({history.length})
             </button>
             <button 
               className="favorites-btn"
-              onClick={() => setShowHistory(false)}
+              onClick={() => {setShowFavorites(!showFavorites); setShowHistory(false);}}
             >
               ❤️ Favorites ({favorites.length})
+            </button>
+            <select 
+              className="difficulty-select"
+              value={difficulty}
+              onChange={(e) => setDifficulty(e.target.value)}
+            >
+              <option value="beginner">🌱 Beginner</option>
+              <option value="intermediate">⚡ Intermediate</option>
+              <option value="advanced">🚀 Advanced</option>
+            </select>
+            <button 
+              className="theme-toggle-btn"
+              onClick={() => setDarkMode(!darkMode)}
+              title="Toggle dark mode"
+            >
+              {darkMode ? '☀️' : '🌙'}
             </button>
           </div>
         </div>
@@ -272,7 +324,10 @@ Format your answer like this:
         {/* History Dropdown */}
         {showHistory && history.length > 0 && (
           <div className="history-dropdown">
-            <h3>📜 Recent Questions</h3>
+            <div className="history-header">
+              <h3>📜 Recent Questions</h3>
+              <button className="clear-btn" onClick={clearHistory}>🗑️ Clear</button>
+            </div>
             <div className="history-list">
               {history.map(item => (
                 <div key={item.id} className="history-item">
@@ -285,6 +340,28 @@ Format your answer like this:
                     onClick={() => toggleFavorite(item.question)}
                   >
                     {favorites.includes(item.question) ? '❤️' : '🤍'}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Favorites Dropdown */}
+        {showFavorites && favorites.length > 0 && (
+          <div className="favorites-dropdown">
+            <h3>❤️ Your Favorites</h3>
+            <div className="favorites-list">
+              {favorites.map((fav, idx) => (
+                <div key={idx} className="favorite-item">
+                  <div className="favorite-content" onClick={() => {setQuestion(fav); setShowFavorites(false);}}>
+                    <p className="favorite-question">{fav}</p>
+                  </div>
+                  <button 
+                    className="heart-btn"
+                    onClick={() => toggleFavorite(fav)}
+                  >
+                    ❤️
                   </button>
                 </div>
               ))}
