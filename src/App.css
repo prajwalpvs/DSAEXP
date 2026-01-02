@@ -1,4 +1,9 @@
 /* ============================================
+   Google Fonts Import
+   ============================================ */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap');
+
+/* ============================================
    Global Styles
    ============================================ */
 * {
@@ -7,12 +12,21 @@
   box-sizing: border-box;
 }
 
+html, body, #root {
+  height: 100%;
+  width: 100%;
+}
+
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
   padding: 20px;
   color: #333;
+  font-weight: 400;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* ============================================
@@ -21,6 +35,8 @@ body {
 .app-wrapper {
   position: relative;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 /* ============================================
@@ -55,15 +71,20 @@ body {
    Main Container
    ============================================ */
 .container {
-  max-width: 900px;
+  width: 100%;
+  max-width: 1200px;
   margin: 0 auto;
   background: white;
-  border-radius: 16px;
-  padding: 40px;
+  border-radius: 20px;
+  padding: 50px;
   box-shadow: 
     0 20px 60px rgba(0, 0, 0, 0.15),
     0 0 1px rgba(0, 0, 0, 0.1);
   animation: slideUp 0.5s ease-out;
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 @keyframes slideUp {
@@ -80,26 +101,56 @@ body {
 /* ============================================
    Header Styles
    ============================================ */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: #2d3748;
+  letter-spacing: -0.5px;
+}
+
 h1 {
+  font-size: 3em;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   text-align: center;
   margin-bottom: 10px;
-  font-size: 2.5em;
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: -1px;
+  line-height: 1.2;
+}
+
+h2 {
+  font-size: 1.8em;
+  color: #667eea;
+  margin-top: 25px;
+}
+
+h3 {
+  font-size: 1.4em;
+  color: #764ba2;
+  margin-top: 18px;
+}
+
+p {
+  font-size: 1.05em;
+  color: #4a5568;
+  line-height: 1.8;
+  margin-bottom: 12px;
 }
 
 .subtitle {
   text-align: center;
-  background: linear-gradient(135deg, #666 0%, #888 100%);
+  background: linear-gradient(135deg, #5a6a8a 0%, #666 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   margin-bottom: 35px;
-  font-size: 1.15em;
-  line-height: 1.4;
+  font-size: 1.25em;
+  line-height: 1.6;
+  font-weight: 500;
 }
 
 /* ============================================
@@ -111,47 +162,53 @@ h1 {
 
 label {
   display: block;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 10px;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 12px;
   font-size: 1.1em;
+  letter-spacing: 0.3px;
+  font-family: 'Poppins', sans-serif;
 }
 
 textarea {
   width: 100%;
-  padding: 14px;
-  font-size: 1em;
-  border: 2px solid #e0e0e0;
-  border-radius: 10px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding: 16px 18px;
+  font-size: 1.05em;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-family: 'Poppins', sans-serif;
   resize: vertical;
   transition: all 0.3s ease;
-  background-color: #fafafa;
-  color: #333;
+  background-color: #f8fafc;
+  color: #2d3748;
+  font-weight: 400;
+  line-height: 1.6;
+  min-height: 140px;
 }
 
 textarea::placeholder {
-  color: #999;
-  opacity: 0.8;
+  color: #a0aec0;
+  opacity: 1;
+  font-weight: 400;
 }
 
 textarea:hover {
-  border-color: #ddd;
+  border-color: #cbd5e0;
   background-color: #fff;
 }
 
 textarea:focus {
   outline: none;
   border-color: #667eea;
-  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.12), 0 0 1px rgba(102, 126, 234, 0.5);
   background-color: #fff;
 }
 
 textarea:disabled {
-  background-color: #f0f0f0;
-  color: #999;
+  background-color: #edf2f7;
+  color: #a0aec0;
   cursor: not-allowed;
-  opacity: 0.7;
+  opacity: 0.6;
 }
 
 /* ============================================
@@ -280,60 +337,73 @@ textarea:disabled {
    ============================================ */
 .result {
   margin-top: 30px;
-  padding: 25px;
-  background: linear-gradient(135deg, #f9f9f9 0%, #f0f5ff 100%);
-  border-radius: 10px;
+  padding: 35px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f0f5ff 100%);
+  border-radius: 14px;
   border-left: 5px solid #667eea;
   line-height: 1.8;
-  color: #333;
+  color: #2d3748;
   animation: slideIn 0.4s ease-out;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+  box-shadow: 0 2px 12px rgba(102, 126, 234, 0.08);
+  font-size: 1.05em;
 }
 
 .result h1 {
   color: #667eea;
-  margin-top: 25px;
-  margin-bottom: 15px;
-  font-size: 2em;
+  margin-top: 30px;
+  margin-bottom: 18px;
+  font-size: 2.2em;
+  font-weight: 800;
+  text-align: left;
+  background: none;
+  -webkit-text-fill-color: unset;
 }
 
 .result h2 {
   color: #667eea;
-  margin-top: 20px;
-  margin-bottom: 15px;
-  font-size: 1.5em;
+  margin-top: 28px;
+  margin-bottom: 16px;
+  font-size: 1.7em;
+  font-weight: 700;
 }
 
 .result h3 {
   color: #764ba2;
-  margin-top: 15px;
-  margin-bottom: 10px;
-  font-size: 1.2em;
+  margin-top: 20px;
+  margin-bottom: 14px;
+  font-size: 1.35em;
+  font-weight: 700;
 }
 
 .result p {
-  margin-bottom: 15px;
-  line-height: 1.6;
+  margin-bottom: 18px;
+  line-height: 1.8;
+  color: #4a5568;
+  font-weight: 400;
 }
 
 .result ul,
 .result ol {
-  margin-left: 25px;
-  margin-bottom: 15px;
+  margin-left: 30px;
+  margin-bottom: 18px;
+  padding: 0;
 }
 
 .result li {
-  margin-bottom: 8px;
-  line-height: 1.6;
+  margin-bottom: 12px;
+  line-height: 1.8;
+  color: #4a5568;
+  font-weight: 400;
 }
 
 .result code {
-  background-color: #eee;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-family: 'Courier New', monospace;
+  background-color: #edf2f7;
+  padding: 4px 8px;
+  border-radius: 5px;
+  font-family: 'Fira Code', 'Courier New', monospace;
   font-size: 0.95em;
-  color: #d63384;
+  color: #c53030;
+  font-weight: 500;
 }
 
 .result pre {
@@ -342,10 +412,11 @@ textarea:disabled {
   padding: 15px;
   border-radius: 8px;
   overflow-x: auto;
-  margin: 15px 0;
-  font-family: 'Courier New', monospace;
+  margin: 20px 0;
+  font-family: 'Fira Code', monospace;
   font-size: 0.95em;
-  line-height: 1.5;
+  line-height: 1.6;
+  border: 1px solid #2d2d2d;
 }
 
 .result pre code {
@@ -354,7 +425,7 @@ textarea:disabled {
   padding: 0;
   border-radius: 0;
   font-size: 1em;
-}
+  font-weight: 400;
 
 /* ============================================
    Responsive Design
