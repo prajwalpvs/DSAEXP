@@ -12,6 +12,43 @@ body {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
   padding: 20px;
+  color: #333;
+}
+
+/* ============================================
+   App Wrapper
+   ============================================ */
+.app-wrapper {
+  position: relative;
+  min-height: 100vh;
+}
+
+/* ============================================
+   Toast Notification
+   ============================================ */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #667eea;
+  color: white;
+  padding: 16px 24px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  animation: slideInUp 0.3s ease-out;
+  font-weight: 600;
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 /* ============================================
@@ -339,4 +376,291 @@ textarea:disabled {
     padding: 10px;
     font-size: 0.85em;
   }
+
+  .samples-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .button-group {
+    flex-direction: column;
+  }
+
+  .header-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .result-actions {
+    flex-wrap: wrap;
+  }
+}
+
+/* ============================================
+   Header Styles
+   ============================================ */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.header h1 {
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.history-btn,
+.favorites-btn {
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95em;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.history-btn:hover,
+.favorites-btn:hover {
+  background: #764ba2;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* ============================================
+   History Dropdown
+   ============================================ */
+.history-dropdown {
+  background: white;
+  border: 2px solid #667eea;
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 20px;
+  max-height: 300px;
+  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.history-dropdown h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #667eea;
+  font-size: 1.1em;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  transition: all 0.2s;
+  border: 1px solid #eee;
+}
+
+.history-item:hover {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+}
+
+.history-content {
+  flex: 1;
+  cursor: pointer;
+}
+
+.history-question {
+  margin: 0;
+  font-weight: 500;
+  font-size: 0.95em;
+}
+
+.history-time {
+  display: block;
+  font-size: 0.8em;
+  opacity: 0.7;
+  margin-top: 4px;
+}
+
+.history-item:hover .history-time {
+  opacity: 1;
+}
+
+.heart-btn {
+  background: none;
+  border: none;
+  font-size: 1.2em;
+  cursor: pointer;
+  transition: transform 0.2s;
+  margin-left: 10px;
+}
+
+.heart-btn:hover {
+  transform: scale(1.3);
+}
+
+/* ============================================
+   Sample Questions Section
+   ============================================ */
+.samples-section {
+  margin-bottom: 30px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f0f5ff 0%, #f9f9f9 100%);
+  border-radius: 10px;
+  border-left: 4px solid #667eea;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+}
+
+.samples-section p {
+  margin: 0 0 15px 0;
+  font-weight: 600;
+  color: #333;
+  font-size: 1em;
+}
+
+.samples-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.sample-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: white;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 0.85em;
+  text-align: center;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.sample-btn:hover {
+  border-color: #667eea;
+  background: #f9f9f9;
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.sample-btn .emoji {
+  font-size: 1.8em;
+}
+
+/* ============================================
+   Input Section Improvements
+   ============================================ */
+.button-group {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.heart-btn-main {
+  flex: 1;
+  padding: 14px;
+  font-size: 1em;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, #ff6b9d 0%, #c83349 100%);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(200, 51, 73, 0.3);
+}
+
+.heart-btn-main:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(200, 51, 73, 0.4);
+}
+
+/* ============================================
+   Result Wrapper and Actions
+   ============================================ */
+.result-wrapper {
+  margin-top: 30px;
+  animation: slideIn 0.4s ease-out;
+}
+
+.result-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+
+.copy-btn,
+.export-btn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95em;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.copy-btn {
+  background: #667eea;
+  color: white;
+}
+
+.copy-btn:hover {
+  background: #764ba2;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.export-btn {
+  background: #667eea;
+  color: white;
+}
+
+.export-btn:hover {
+  background: #764ba2;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* ============================================
+   Code Container with Syntax Highlighting
+   ============================================ */
+.code-container {
+  margin: 15px 0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.code-container pre {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.code-container code {
+  background: transparent !important;
+  padding: 0 !important;
 }

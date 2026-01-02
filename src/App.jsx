@@ -1,27 +1,135 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import SyntaxHighlighter from 'react-syntax-highlighter';
+import { atomOneDark } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import './App.css';
 
 // Get the API key from environment variables
-// In development, use the .env file in the project root
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || 'YOUR_API_KEY_HERE';
 
 // Gemini API endpoint
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
+// Sample questions for quick access
+const SAMPLE_QUESTIONS = [
+  { text: "Explain binary search with example", emoji: "🔍" },
+  { text: "What is a hash table and when to use it", emoji: "🗂️" },
+  { text: "Explain recursion simply with Python code", emoji: "🔄" },
+  { text: "What is dynamic programming (DP)?", emoji: "📊" },
+  { text: "Detect cycle in linked list - Floyd's algorithm", emoji: "🔗" }
+];
+
 export default function App() {
-  // State to store the user's question
+  // ============================================
+  // STATE MANAGEMENT
+  // ============================================
   const [question, setQuestion] = useState('');
-  
-  // State to store the API response/answer
   const [answer, setAnswer] = useState('');
-  
-  // State to track if we're loading (waiting for API response)
   const [loading, setLoading] = useState(false);
-  
-  // State to store any error messages
   const [error, setError] = useState('');
+  
+  // Search history and favorites
+  const [history, setHistory] = useState(() => {
+    const saved = localStorage.getItem('questionHistory');
+    return saved ? JSON.parse(saved) : [];
+  });
+  
+  const [favorites, setFavorites] = useState(() => {
+    const saved = localStorage.getItem('favorites');
+    return saved ? JSON.parse(saved) : [];
+  });
+  
+  // UI states
+  const [showHistory, setShowHistory] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [toast, setToast] = useState('');
 
   // ============================================
+  // HELPER FUNCTIONS
+  // ============================================
+  
+  // Show toast notification
+  const showToast = (message) => {
+    setToast(message);
+    setTimeout(() => setToast(''), 3000);
+  };
+
+  // Save to history
+  const saveToHistory = (q, a) => {
+    const newEntry = {
+      id: Date.now(),
+      question: q,
+      answer: a,
+      timestamp: new Date().toLocaleString()
+    };
+    
+    const updated = [newEntry, ...history].slice(0, 10);
+    setHistory(updated);
+    localStorage.setItem('questionHistory', JSON.stringify(updated));
+  };
+
+  // Toggle favorite
+  const toggleFavorite = (q) => {
+    if (favorites.includes(q)) {
+      const updated = favorites.filter(fav => fav !== q);
+      setFavorites(updated);
+      localStorage.setItem('favorites', JSON.stringify(updated));
+    } else {
+      const updated = [...favorites, q];
+      setFavorites(updated);
+      localStorage.setItem('favorites', JSON.stringify(updated));
+    }
+  };
+
+  // Copy answer to clipboard
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(answer).then(() => {
+      setCopied(true);
+      showToast('✅ Answer copied to clipboard!');
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  // Export as PDF
+  const exportAsPDF = async () => {
+    try {
+      const element = document.querySelector('.result');
+      if (!element) return;
+      
+      const canvas = await html2canvas(element);
+      const pdf = new jsPDF();
+      const imgData = canvas.toDataURL('image/png');
+      const imgWidth = 190;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+      pdf.save(`dsa-answer-${Date.now()}.pdf`);
+      showToast('📥 PDF downloaded successfully!');
+    } catch (err) {
+      showToast('❌ Error exporting PDF');
+      console.error(err);
+    }
+  };
+
+  // Export as Markdown
+  const exportAsMarkdown = () => {
+    const content = `# ${question}\n\n${answer}`;
+    const blob = new Blob([content], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `dsa-answer-${Date.now()}.md`;
+    a.click();
+    showToast('📄 Markdown file downloaded!');
+  };
+
+  // Load from history
+  const loadFromHistory = (q, a) => {
+    setQuestion(q);
+    setAnswer(a);
+    setShowHistory(false);
+  };
+
   // BUILD THE SYSTEM PROMPT
   // ============================================
   // This prompt tells Gemini how to answer questions like a teacher for beginners
@@ -116,6 +224,9 @@ Format your answer like this:
 
       // Display the answer
       setAnswer(assistantAnswer);
+      
+      // Save to history
+      saveToHistory(question, assistantAnswer);
     } catch (err) {
       // Handle any errors that occurred during the API call
       console.error('Error:', err);
@@ -132,61 +243,152 @@ Format your answer like this:
   // RENDER THE COMPONENT
   // ============================================
   return (
-    <div className="container">
-      {/* Header */}
-      <h1>🧠 DSA / LeetCode Helper</h1>
-      <p className="subtitle">Ask any DSA or LeetCode question, and get a beginner-friendly explanation</p>
+    <div className="app-wrapper">
+      {/* Toast Notification */}
+      {toast && <div className="toast">{toast}</div>}
 
-      {/* Input Section */}
-      <div className="input-section">
-        <label htmlFor="question">Your Question:</label>
-        <textarea
-          id="question"
-          placeholder="Example: Explain binary search with a Python example..."
-          rows="5"
-          value={question}
-          onChange={(e) => setQuestion(e.target.value)}
-          disabled={loading}
-        />
-        <button
-          onClick={handleGenerateClick}
-          disabled={loading}
-          className="generate-btn"
-        >
-          {loading ? 'Generating Answer...' : 'Generate Answer'}
-        </button>
+      <div className="container">
+        {/* Header with title and actions */}
+        <div className="header">
+          <h1>🧠 DSA / LeetCode Helper</h1>
+          <div className="header-actions">
+            <button 
+              className="history-btn"
+              onClick={() => setShowHistory(!showHistory)}
+            >
+              📚 History ({history.length})
+            </button>
+            <button 
+              className="favorites-btn"
+              onClick={() => setShowHistory(false)}
+            >
+              ❤️ Favorites ({favorites.length})
+            </button>
+          </div>
+        </div>
+
+        <p className="subtitle">Ask any DSA or LeetCode question, and get a beginner-friendly explanation</p>
+
+        {/* History Dropdown */}
+        {showHistory && history.length > 0 && (
+          <div className="history-dropdown">
+            <h3>📜 Recent Questions</h3>
+            <div className="history-list">
+              {history.map(item => (
+                <div key={item.id} className="history-item">
+                  <div className="history-content" onClick={() => loadFromHistory(item.question, item.answer)}>
+                    <p className="history-question">{item.question}</p>
+                    <small className="history-time">{item.timestamp}</small>
+                  </div>
+                  <button 
+                    className="heart-btn"
+                    onClick={() => toggleFavorite(item.question)}
+                  >
+                    {favorites.includes(item.question) ? '❤️' : '🤍'}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Sample Questions Section */}
+        <div className="samples-section">
+          <p>💡 Try these popular questions:</p>
+          <div className="samples-grid">
+            {SAMPLE_QUESTIONS.map((q, i) => (
+              <button
+                key={i}
+                className="sample-btn"
+                onClick={() => setQuestion(q.text)}
+              >
+                <span className="emoji">{q.emoji}</span>
+                <span>{q.text}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Input Section */}
+        <div className="input-section">
+          <label htmlFor="question">Your Question:</label>
+          <textarea
+            id="question"
+            placeholder="Example: Explain binary search with a Python example..."
+            rows="5"
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            disabled={loading}
+          />
+          <div className="button-group">
+            <button
+              onClick={handleGenerateClick}
+              disabled={loading}
+              className="generate-btn"
+            >
+              {loading ? 'Generating Answer...' : 'Generate Answer'}
+            </button>
+            {question && (
+              <button 
+                className="heart-btn-main"
+                onClick={() => toggleFavorite(question)}
+                title={favorites.includes(question) ? 'Remove from favorites' : 'Add to favorites'}
+              >
+                {favorites.includes(question) ? '❤️ Favorited' : '🤍 Add to Favorites'}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Loading Message */}
+        {loading && (
+          <div className="loading">
+            Loading your answer...
+          </div>
+        )}
+
+        {/* Error Message */}
+        {error && (
+          <div className="error">
+            {error}
+          </div>
+        )}
+
+        {/* Result Section */}
+        {answer && (
+          <div className="result-wrapper">
+            <div className="result-actions">
+              <button className="copy-btn" onClick={copyToClipboard}>
+                {copied ? '✅ Copied!' : '📋 Copy Answer'}
+              </button>
+              <button className="export-btn" onClick={exportAsPDF}>
+                📥 Download PDF
+              </button>
+              <button className="export-btn" onClick={exportAsMarkdown}>
+                📄 Download Markdown
+              </button>
+              <button 
+                className="heart-btn-main"
+                onClick={() => toggleFavorite(question)}
+              >
+                {favorites.includes(question) ? '❤️ Favorited' : '🤍 Add to Favorites'}
+              </button>
+            </div>
+            <div className="result">
+              <MarkdownRenderer content={answer} />
+            </div>
+          </div>
+        )}
       </div>
-
-      {/* Loading Message */}
-      {loading && (
-        <div className="loading">
-          Loading your answer...
-        </div>
-      )}
-
-      {/* Error Message */}
-      {error && (
-        <div className="error">
-          {error}
-        </div>
-      )}
-
-      {/* Result Section */}
-      {answer && (
-        <div className="result">
-          <MarkdownRenderer content={answer} />
-        </div>
-      )}
     </div>
   );
 }
 
 // ============================================
-// MARKDOWN RENDERER COMPONENT
+// MARKDOWN RENDERER COMPONENT WITH SYNTAX HIGHLIGHTING
 // ============================================
 // This component converts markdown-style text to styled React elements
 function MarkdownRenderer({ content }) {
-  // Split the content by lines and process them
   const lines = content.split('\n');
   const elements = [];
   let codeBlock = '';
@@ -197,20 +399,32 @@ function MarkdownRenderer({ content }) {
     // Check if this line starts a code block
     if (line.startsWith('```')) {
       if (inCodeBlock) {
-        // End of code block
+        // End of code block - render with syntax highlighting
         inCodeBlock = false;
         elements.push(
-          <pre key={`code-${index}`} className={`code-block language-${codeLanguage}`}>
-            <code>{codeBlock.trim()}</code>
-          </pre>
+          <div key={`code-${index}`} className="code-container">
+            <SyntaxHighlighter 
+              language={codeLanguage || 'python'} 
+              style={atomOneDark}
+              showLineNumbers={true}
+              customStyle={{
+                borderRadius: '8px',
+                padding: '15px',
+                fontSize: '0.95em',
+                lineHeight: '1.5',
+                margin: '15px 0'
+              }}
+            >
+              {codeBlock.trim()}
+            </SyntaxHighlighter>
+          </div>
         );
         codeBlock = '';
         codeLanguage = '';
       } else {
         // Start of code block
         inCodeBlock = true;
-        // Extract language if specified (e.g., ```python)
-        codeLanguage = line.replace('```', '').trim() || 'text';
+        codeLanguage = line.replace('```', '').trim() || 'python';
       }
       return;
     }
@@ -268,9 +482,22 @@ function MarkdownRenderer({ content }) {
   // If there's an unclosed code block, close it
   if (inCodeBlock && codeBlock) {
     elements.push(
-      <pre key="code-final" className={`code-block language-${codeLanguage}`}>
-        <code>{codeBlock.trim()}</code>
-      </pre>
+      <div key="code-final" className="code-container">
+        <SyntaxHighlighter 
+          language={codeLanguage || 'python'} 
+          style={atomOneDark}
+          showLineNumbers={true}
+          customStyle={{
+            borderRadius: '8px',
+            padding: '15px',
+            fontSize: '0.95em',
+            lineHeight: '1.5',
+            margin: '15px 0'
+          }}
+        >
+          {codeBlock.trim()}
+        </SyntaxHighlighter>
+      </div>
     );
   }
 
