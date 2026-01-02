@@ -5,11 +5,21 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import './App.css';
 
+// ============================================
+// CONSTANTS
+// ============================================
+const STORAGE_KEYS = {
+  QUESTION_HISTORY: 'questionHistory',
+  FAVORITES: 'favorites',
+  DARK_MODE: 'darkMode',
+  DIFFICULTY: 'difficulty'
+};
+
 // Get the API key from environment variables
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || 'YOUR_API_KEY_HERE';
-
-// Gemini API endpoint
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+const API_REQUEST_TIMEOUT = 30000; // 30 seconds
+const API_RATE_LIMIT_MS = 1000; // 1 second between requests
 
 // Sample questions for quick access
 const SAMPLE_QUESTIONS = [
@@ -29,29 +39,50 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
-  // Search history and favorites
+  // Search history and favorites with error handling
   const [history, setHistory] = useState(() => {
-    const saved = localStorage.getItem('questionHistory');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.QUESTION_HISTORY);
+      return saved ? JSON.parse(saved) : [];
+    } catch (err) {
+      console.error('Error loading history:', err);
+      localStorage.removeItem(STORAGE_KEYS.QUESTION_HISTORY);
+      return [];
+    }
   });
   
   const [favorites, setFavorites] = useState(() => {
-    const saved = localStorage.getItem('favorites');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.FAVORITES);
+      return saved ? JSON.parse(saved) : [];
+    } catch (err) {
+      console.error('Error loading favorites:', err);
+      localStorage.removeItem(STORAGE_KEYS.FAVORITES);
+      return [];
+    }
   });
   
   // UI states
   const [showHistory, setShowHistory] = useState(false);
   const [showFavorites, setShowFavorites] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [toast, setToast] = useState('');
+  const [toastTimeout, setToastTimeout] = useState(null);
+  const [lastApiCall, setLastApiCall] = useState(0);
   const [darkMode, setDarkMode] = useState(() => {
-    const saved = localStorage.getItem('darkMode');
-    return saved ? JSON.parse(saved) : false;
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.DARK_MODE);
+      return saved ? JSON.parse(saved) : false;
+    } catch (err) {
+      return false;
+    }
   });
   const [difficulty, setDifficulty] = useState(() => {
-    const saved = localStorage.getItem('difficulty');
-    return saved || 'beginner';
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.DIFFICULTY);
+      return saved || 'beginner';
+    } catch (err) {
+      return 'beginner';
+    }
   });
 
   // ============================================
@@ -60,33 +91,57 @@ export default function App() {
   
   // Apply dark mode to document
   useEffect(() => {
-    localStorage.setItem('darkMode', JSON.stringify(darkMode));
+    localStorage.setItem(STORAGE_KEYS.DARK_MODE, JSON.stringify(darkMode));
     document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
   }, [darkMode]);
 
   // Save difficulty level
   useEffect(() => {
-    localStorage.setItem('difficulty', difficulty);
+    localStorage.setItem(STORAGE_KEYS.DIFFICULTY, difficulty);
   }, [difficulty]);
 
-  // Show toast notification
+  // Show toast notification with proper cleanup
   const showToast = (message) => {
+    // Clear previous timeout if exists
+    if (toastTimeout) clearTimeout(toastTimeout);
+    
     setToast(message);
-    setTimeout(() => setToast(''), 3000);
+    const newTimeout = setTimeout(() => {
+      setToast('');
+      setToastTimeout(null);
+    }, 3000);
+    setToastTimeout(newTimeout);
   };
 
-  // Save to history
-  const saveToHistory = (q, a) => {
-    const newEntry = {
-      id: Date.now(),
-      question: q,
-      answer: a,
-      timestamp: new Date().toLocaleString()
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (toastTimeout) clearTimeout(toastTimeout);
     };
-    
-    const updated = [newEntry, ...history].slice(0, 10);
-    setHistory(updated);
-    localStorage.setItem('questionHistory', JSON.stringify(updated));
+  }, [toastTimeout]);
+
+  // Save to history with error handling
+  const saveToHistory = (q, a) => {
+    try {
+      const newEntry = {
+        id: Date.now(),
+        question: q,
+        answer: a,
+        timestamp: new Date().toLocaleString()
+      };
+      
+      const updated = [newEntry, ...history].slice(0, 10);
+      setHistory(updated);
+      localStorage.setItem(STORAGE_KEYS.QUESTION_HISTORY, JSON.stringify(updated));
+    } catch (err) {
+      if (err.name === 'QuotaExceededError') {
+        showToast('⚠️ Storage full. Clearing old history.');
+        setHistory([]);
+        localStorage.removeItem(STORAGE_KEYS.QUESTION_HISTORY);
+      } else {
+        console.error('Error saving to history:', err);
+      }
+    }
   };
 
   // Clear history
@@ -112,13 +167,31 @@ export default function App() {
     }
   };
 
-  // Copy answer to clipboard
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(answer).then(() => {
+  // Copy answer to clipboard with fallback for older browsers
+  const copyToClipboard = async () => {
+    try {
+      // Try modern clipboard API first
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(answer);
+      } else {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = answer;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      
       setCopied(true);
       showToast('✅ Answer copied to clipboard!');
       setTimeout(() => setCopied(false), 2000);
-    });
+    } catch (err) {
+      showToast('❌ Failed to copy. Try again.');
+      console.error('Clipboard error:', err);
+    }
   };
 
   // Export as PDF
@@ -193,8 +266,21 @@ Format your answer:
   // ============================================
   const handleGenerateClick = async () => {
     // Validate: Check if the user entered a question
-    if (!question.trim()) {
-      setError('Please enter a DSA or LeetCode question.');
+    const trimmedQuestion = (question || '').trim();
+    
+    if (trimmedQuestion.length === 0) {
+      setError('❌ Please enter a DSA or LeetCode question.');
+      return;
+    }
+
+    // Validate question length
+    if (trimmedQuestion.length < 5) {
+      setError('❌ Question must be at least 5 characters long.');
+      return;
+    }
+
+    if (trimmedQuestion.length > 2000) {
+      setError(`❌ Question must be less than 2000 characters. Current: ${trimmedQuestion.length}`);
       return;
     }
 
@@ -206,17 +292,23 @@ Format your answer:
       return;
     }
 
+    // Rate limiting: Prevent API spam
+    const now = Date.now();
+    if (now - lastApiCall < API_RATE_LIMIT_MS) {
+      setError('⏳ Please wait a moment before making another request.');
+      return;
+    }
+    setLastApiCall(now);
+
     // Clear previous results and errors
     setError('');
     setAnswer('');
-
-    // Show loading message
     setLoading(true);
 
     try {
       // Build the prompt that tells Gemini how to answer
       const systemPrompt = buildSystemPrompt();
-      const fullPrompt = systemPrompt + '\n\nUser Question: ' + question;
+      const fullPrompt = systemPrompt + '\n\nUser Question: ' + trimmedQuestion;
 
       // Prepare the request body for the Gemini API
       const requestBody = {
@@ -231,43 +323,77 @@ Format your answer:
         ],
       };
 
-      // Make the fetch request to the Gemini API
-      const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-      });
+      // Setup timeout using AbortController
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), API_REQUEST_TIMEOUT);
 
-      // Check if the response is successful
-      if (!response.ok) {
-        const errorData = await response.json();
+      let response;
+      try {
+        // Make the fetch request to the Gemini API with timeout
+        response = await fetch(
+          `${GEMINI_API_URL}?key=${encodeURIComponent(GEMINI_API_KEY)}`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+            signal: controller.signal,
+          }
+        );
+        clearTimeout(timeoutId);
+      } catch (networkErr) {
+        clearTimeout(timeoutId);
+        if (networkErr.name === 'AbortError') {
+          throw new Error(
+            `Request timeout (${API_REQUEST_TIMEOUT / 1000}s). The API took too long to respond. Please try again.`
+          );
+        }
         throw new Error(
-          `API Error ${response.status}: ${errorData.error?.message || 'Unknown error'}`
+          `Network Error: Unable to reach API. Check your internet connection. ${networkErr.message}`
         );
       }
 
+      // Check if the response is successful
+      if (!response.ok) {
+        let errorMessage = 'Unknown error';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error?.message || errorData.error?.code || errorMessage;
+        } catch (e) {
+          // If response isn't JSON, use status text
+          errorMessage = response.statusText || `HTTP ${response.status}`;
+        }
+        
+        throw new Error(`API Error ${response.status}: ${errorMessage}`);
+      }
+
       // Parse the response JSON
-      const responseData = await response.json();
+      let responseData;
+      try {
+        responseData = await response.json();
+      } catch (parseErr) {
+        throw new Error('Failed to parse API response. Invalid JSON received.');
+      }
 
       // Extract the text from the API response
       const assistantAnswer = responseData.candidates?.[0]?.content?.parts?.[0]?.text;
 
       if (!assistantAnswer) {
-        throw new Error('No response received from the API.');
+        throw new Error('No response received from the API. Please try again.');
       }
 
       // Display the answer
       setAnswer(assistantAnswer);
       
       // Save to history
-      saveToHistory(question, assistantAnswer);
+      saveToHistory(trimmedQuestion, assistantAnswer);
+      showToast('✅ Answer generated successfully!');
     } catch (err) {
       // Handle any errors that occurred during the API call
       console.error('Error:', err);
       setError(
-        `❌ Error: ${err.message}\n\nMake sure your API key is correct and you have internet connection.`
+        `❌ Error: ${err.message}\n\nPlease check your API key and try again.`
       );
     } finally {
       // Hide loading message
@@ -304,6 +430,7 @@ Format your answer:
               className="difficulty-select"
               value={difficulty}
               onChange={(e) => setDifficulty(e.target.value)}
+              aria-label="Select difficulty level for explanation"
             >
               <option value="beginner">🌱 Beginner</option>
               <option value="intermediate">⚡ Intermediate</option>
@@ -423,8 +550,7 @@ Format your answer:
           <label htmlFor="question">🦒 Your Question: 🦒</label>
           <textarea
             id="question"
-            placeholder="🐢 Example: Explain binary search with a Python example... 🐢"
-            rows="5"
+            placeholder="🐢 Example: Explain binary search with a Python example... 🐢"            aria-label="Enter your DSA or LeetCode question"            rows="5"
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             disabled={loading}
@@ -467,7 +593,11 @@ Format your answer:
         {answer && (
           <div className="result-wrapper">
             <div className="result-actions">
-              <button className="copy-btn" onClick={copyToClipboard}>
+              <button 
+                className="copy-btn" 
+                onClick={copyToClipboard}
+                aria-label="Copy answer to clipboard"
+              >
                 {copied ? '✅ Copied!' : '📋 Copy Answer'}
               </button>
               <button className="export-btn" onClick={exportAsPDF}>
