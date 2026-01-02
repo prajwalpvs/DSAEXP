@@ -250,7 +250,7 @@ Format your answer like this:
       <div className="container">
         {/* Header with title and actions */}
         <div className="header">
-          <h1>🧠 DSA / LeetCode Helper</h1>
+          <h1><span className="text-gradient-animated">🧠 DSA / LeetCode Helper</span></h1>
           <div className="header-actions">
             <button 
               className="history-btn"
@@ -380,6 +380,15 @@ Format your answer like this:
           </div>
         )}
       </div>
+
+      {/* Floating Action Button */}
+      <button 
+        className="fab" 
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        title="Scroll to top"
+      >
+        ⬆️
+      </button>
     </div>
   );
 }

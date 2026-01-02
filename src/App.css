@@ -19,7 +19,9 @@ html, body, #root {
 
 body {
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #4facfe);
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
   min-height: 100vh;
   padding: 20px;
   color: #333;
@@ -65,6 +67,15 @@ body {
     transform: translateY(0);
     opacity: 1;
   }
+}
+
+/* ============================================
+   TIER 1 Enhancements - Animated Gradient
+   ============================================ */
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 /* ============================================
@@ -734,4 +745,163 @@ textarea:disabled {
 .code-container code {
   background: transparent !important;
   padding: 0 !important;
+}
+
+/* ============================================
+   TIER 1 Enhancement: Neumorphism Buttons
+   ============================================ */
+.btn-neumorphic {
+  background: #e0e5ec;
+  box-shadow: 
+    inset 2px 2px 5px #b8b9be,
+    inset -3px -3px 7px #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 24px;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-neumorphic:hover {
+  box-shadow: 
+    inset 1px 1px 3px #b8b9be,
+    inset -1px -1px 3px #ffffff;
+  transform: translateY(-2px);
+}
+
+.btn-neumorphic:active {
+  box-shadow: 
+    inset 1px 1px 3px #b8b9be,
+    inset -1px -1px 3px #ffffff;
+}
+
+/* ============================================
+   TIER 1 Enhancement: Floating Action Button
+   ============================================ */
+.fab {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.5em;
+  z-index: 100;
+  transition: all 0.3s;
+  border: none;
+  color: white;
+  font-weight: 600;
+}
+
+.fab:hover {
+  transform: scale(1.1);
+  box-shadow: 0 12px 32px rgba(102, 126, 234, 0.5);
+}
+
+.fab:active {
+  transform: scale(0.95);
+}
+
+/* ============================================
+   TIER 1 Enhancement: Animated Text Gradient
+   ============================================ */
+.text-gradient-animated {
+  background: linear-gradient(
+    90deg,
+    #667eea,
+    #764ba2,
+    #f093fb,
+    #667eea
+  );
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientText 3s ease infinite;
+  font-weight: 700;
+}
+
+@keyframes gradientText {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ============================================
+   TIER 1 Enhancement: Glassmorphism Cards
+   ============================================ */
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+  transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.85);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.15);
+}
+
+/* ============================================
+   TIER 1 Enhancement: Enhanced Button Effects
+   ============================================ */
+.btn-enhanced {
+  position: relative;
+  overflow: hidden;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-enhanced::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.btn-enhanced:hover::after {
+  width: 300px;
+  height: 300px;
+}
+
+/* ============================================
+   Responsive Design for Mobile
+   ============================================ */
+@media (max-width: 768px) {
+  .fab {
+    bottom: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    font-size: 1.2em;
+  }
+
+  .glass-card {
+    padding: 15px;
+    border-radius: 15px;
+  }
 }
