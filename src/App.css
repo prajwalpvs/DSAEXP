@@ -265,6 +265,24 @@ body {
   font-weight: 800;
   font-size: 14px;
   font-family: 'Poppins', sans-serif;
+  z-index: 2;
+}
+
+.nav-concept-art {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: auto;
+  opacity: 0.15;
+  pointer-events: none;
+  mask-image: linear-gradient(to right, black 20%, transparent);
+  -webkit-mask-image: linear-gradient(to right, black 20%, transparent);
+  transition: opacity var(--transition-base);
+}
+
+[data-theme="dark"] .nav-concept-art {
+  opacity: 0.3;
 }
 
 .nav-title {
@@ -878,6 +896,30 @@ textarea:disabled {
   line-height: 1.8;
   color: var(--text-primary);
   font-size: 0.92rem;
+}
+
+/* SVG Diagram Container */
+.svg-diagram-container {
+  margin: 24px 0;
+  padding: 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.svg-diagram-container svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+[data-theme="dark"] .svg-diagram-container svg {
+  filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.2));
 }
 
 /* Result Typography */

@@ -94,8 +94,25 @@ function formatGeminiResponse(text) {
       return;
     }
 
+    // Handle SVG blocks (AI-generated diagrams)
+    if (line.trim().startsWith('<svg') || line.trim().startsWith('<?xml')) {
+      // Find the end of the SVG (crude but effective for AI output)
+      const svgContent = lines.slice(index).join('\n');
+      const svgMatch = svgContent.match(/<svg[\s\S]*?<\/svg>/);
+      if (svgMatch) {
+        elements.push({
+          type: 'svg',
+          content: svgMatch[0]
+        });
+        // We should skip the lines that were part of the SVG
+        // But for simplicity in this loop, we'll mark a flag or rely on the fact that 
+        // paragraphs won't match <svg
+      }
+      return;
+    }
+
     // Handle regular paragraphs with bold text
-    if (line.trim().length > 0) {
+    if (line.trim().length > 0 && !line.trim().startsWith('<svg')) {
       elements.push({
         type: 'paragraph',
         text: line.trim()
@@ -381,12 +398,19 @@ Difficulty level: ${difficulty.toUpperCase()} - ${difficultyGuides[difficulty]}
 Important instructions:
 1. Match the difficulty level above.
 2. Always provide Python code examples that are clear and well-commented.
-3. Include a simple ASCII diagram when helpful.
-4. Format with clear headings and bullet points.
-5. Add Big O complexity analysis (Time & Space).
+3. VISUAL AID REQUIREMENT: If the concept is visual (Trees, Graphs, Sorting, Arrays, Linked Lists), you MUST provide a professional SVG diagram.
+4. SVG DIAGRAM RULES:
+   - Use a simple, clean, modern style.
+   - Set max-width to "100%" and height to "auto".
+   - Use high-contrast colors suitable for both light and dark backgrounds (or use "currentColor").
+   - Ensure nodes, labels, and arrows are clearly visible.
+   - Wrap the SVG in its own block (not inside markdown triple backticks).
+5. Format with clear headings and bullet points.
+6. Add Big O complexity analysis (Time & Space).
 
 Format your answer:
 - Brief explanation
+- SVG Diagram (if applicable)
 - Step-by-step breakdown
 - Python code example (wrap in \`\`\`python)
 - Complexity Analysis (Time & Space)
@@ -544,6 +568,11 @@ Format your answer:
       {/* ===== TOP NAV BAR ===== */}
       <nav className="nav-bar">
         <div className="nav-brand">
+          <img
+            src="file:///C:/Users/prajw/.gemini/antigravity/brain/7e0a3472-e88b-4d7d-a9eb-85c6db3c554e/dsa_concept_art_modern_abstract_1772376484000_png_1772376508540.png"
+            alt="DSA Concept Art"
+            className="nav-concept-art"
+          />
           <div className="nav-logo">DS</div>
           <span className="nav-title">
             <span className="text-gradient-animated">DSA Helper</span>
@@ -863,6 +892,14 @@ function FormattedResponseRenderer({ content }) {
                   {element.code}
                 </SyntaxHighlighter>
               </div>
+            );
+          case 'svg':
+            return (
+              <div
+                key={index}
+                className="svg-diagram-container"
+                dangerouslySetInnerHTML={{ __html: element.content }}
+              />
             );
           default:
             return null;
