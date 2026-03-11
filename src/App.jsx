@@ -164,19 +164,29 @@ const API_RATE_LIMIT_MS = 60000; // 1 second between requests
 // Organized by difficulty and category for better UX
 const SAMPLE_QUESTIONS_CATEGORIZED = {
   popular: [
-    { text: "Two Sum problem", emoji: "⭐" },
-    { text: "Reverse linked list", emoji: "⭐" },
-    { text: "Binary tree traversals", emoji: "⭐" },
-    { text: "Climbing stairs DP", emoji: "⭐" },
-    { text: "Valid parentheses", emoji: "⭐" }
+    { text: "Two Sum problem", emoji: "🔥" },
+    { text: "Reverse linked list", emoji: "🔥" },
+    { text: "Binary tree traversals", emoji: "🔥" },
+    { text: "Climbing stairs DP", emoji: "🔥" },
+    { text: "Valid parentheses", emoji: "🔥" }
   ]
 };
 
 const DSA_TOPICS = [
-  'Arrays', 'Strings', 'Linked Lists', 'Trees',
-  'Graphs', 'Dynamic Programming', 'Sorting',
-  'Stacks & Queues', 'Binary Search', 'Hashing',
-  'Recursion', 'Greedy', 'Bit Manipulation', 'Heap'
+  { name: 'Arrays', icon: '🔢' },
+  { name: 'Strings', icon: '🔤' },
+  { name: 'Linked Lists', icon: '🔗' },
+  { name: 'Trees', icon: '🌲' },
+  { name: 'Graphs', icon: '🕸️' },
+  { name: 'Dynamic Programming', icon: '📊' },
+  { name: 'Sorting', icon: '📶' },
+  { name: 'Stacks & Queues', icon: '📚' },
+  { name: 'Binary Search', icon: '🔍' },
+  { name: 'Hashing', icon: '#️⃣' },
+  { name: 'Recursion', icon: '🔄' },
+  { name: 'Greedy', icon: '💰' },
+  { name: 'Bit Manipulation', icon: '⚙️' },
+  { name: 'Heap', icon: '⛰️' }
 ];
 export default function App() {
   // ============================================
@@ -568,12 +578,12 @@ Format your answer:
       {/* ===== TOP NAV BAR ===== */}
       <nav className="nav-bar">
         <div className="nav-brand">
-          <img
-            src="file:///C:/Users/prajw/.gemini/antigravity/brain/7e0a3472-e88b-4d7d-a9eb-85c6db3c554e/dsa_concept_art_modern_abstract_1772376484000_png_1772376508540.png"
-            alt="DSA Concept Art"
-            className="nav-concept-art"
-          />
-          <div className="nav-logo">DS</div>
+          <div className="nav-logo">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="16 18 22 12 16 6"></polyline>
+              <polyline points="8 6 2 12 8 18"></polyline>
+            </svg>
+          </div>
           <span className="nav-title">
             <span className="text-gradient-animated">DSA Helper</span>
           </span>
@@ -606,7 +616,7 @@ Format your answer:
         <aside className="sidebar">
 
           {/* Stats Card */}
-          <div className="card">
+          <div className="card card-accent">
             <div className="card-header">
               <span className="card-title">Your Stats</span>
             </div>
@@ -614,10 +624,12 @@ Format your answer:
               <div className="stat-item">
                 <div className="stat-value">{history.length}</div>
                 <div className="stat-label">Questions</div>
+                <div className="stat-bar"><div className="stat-bar-fill" style={{ width: `${Math.min(history.length * 10, 100)}%` }}></div></div>
               </div>
               <div className="stat-item">
                 <div className="stat-value pink">{favorites.length}</div>
                 <div className="stat-label">Favorites</div>
+                <div className="stat-bar"><div className="stat-bar-fill pink-bar" style={{ width: `${Math.min(favorites.length * 20, 100)}%` }}></div></div>
               </div>
               <div className="stat-item">
                 <div className="stat-value emerald">{difficulty === 'beginner' ? '🌱' : difficulty === 'intermediate' ? '⚡' : '🚀'}</div>
@@ -626,6 +638,7 @@ Format your answer:
               <div className="stat-item">
                 <div className="stat-value amber">{Math.min(history.length, 10)}</div>
                 <div className="stat-label">Streak</div>
+                <div className="stat-bar"><div className="stat-bar-fill amber-bar" style={{ width: `${Math.min(history.length, 10) * 10}%` }}></div></div>
               </div>
             </div>
           </div>
@@ -640,16 +653,16 @@ Format your answer:
                 <button
                   key={i}
                   className="topic-chip"
-                  onClick={() => setQuestion(`Explain ${topic} in DSA with examples`)}
+                  onClick={() => setQuestion(`Explain ${topic.name} in DSA with examples`)}
                 >
-                  {topic}
+                  <span className="topic-icon">{topic.icon}</span> {topic.name}
                 </button>
               ))}
             </div>
           </div>
 
           {/* Recent History Card */}
-          <div className="card">
+          <div className="card card-accent-subtle">
             <div className="card-header">
               <span className="card-title">Recent</span>
               {history.length > 0 && (
@@ -670,12 +683,12 @@ Format your answer:
                 ))}
               </div>
             ) : (
-              <p className="sidebar-empty">No history yet</p>
+              <p className="sidebar-empty">📭 No history yet — ask a question!</p>
             )}
           </div>
 
           {/* Favorites Card */}
-          <div className="card">
+          <div className="card card-accent-pink">
             <div className="card-header">
               <span className="card-title">Favorites</span>
             </div>
@@ -701,7 +714,7 @@ Format your answer:
                 ))}
               </div>
             ) : (
-              <p className="sidebar-empty">No favorites yet</p>
+              <p className="sidebar-empty">⭐ No favorites yet — star a question!</p>
             )}
           </div>
 
@@ -709,6 +722,15 @@ Format your answer:
 
         {/* ===== MAIN CONTENT ===== */}
         <main className="main-content">
+
+          {/* Welcome Hero — only when no answer is displayed */}
+          {!answer && !loading && !error && (
+            <div className="welcome-hero">
+              <div className="welcome-icon">💡</div>
+              <h2 className="welcome-title">What do you want to learn today?</h2>
+              <p className="welcome-subtitle">Ask any DSA question — from Two Sum to system design. Get step-by-step explanations, code, and diagrams.</p>
+            </div>
+          )}
 
           {/* Ask Card */}
           <div className="card ask-card">
@@ -726,7 +748,7 @@ Format your answer:
                 disabled={loading}
               />
               <div className="samples-section">
-                <p>Popular</p>
+                <p><span className="trending-badge">🔥 Trending</span></p>
                 <div className="samples-grid">
                   {SAMPLE_QUESTIONS_CATEGORIZED.popular.map((q, i) => (
                     <button
@@ -746,7 +768,7 @@ Format your answer:
                   disabled={loading}
                   className="generate-btn"
                 >
-                  {loading ? 'Generating...' : 'Generate Answer'}
+                  {loading ? '⏳ Generating...' : '✨ Ask AI'}
                 </button>
                 {question && (
                   <button
@@ -764,7 +786,12 @@ Format your answer:
           {/* Loading */}
           {loading && (
             <div className="loading">
-              Generating your answer...
+              <div className="loading-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+              <span className="loading-text">Generating your answer…</span>
             </div>
           )}
 
