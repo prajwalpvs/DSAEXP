@@ -66,7 +66,7 @@ Format your answer:
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), API_REQUEST_TIMEOUT);
 
-      const response = await fetch(`${GEMINI_API_URL}?key=${encodeURIComponent(GEMINI_API_KEY)}`, {
+      const response = await fetch(`${GEMINI_API_URL}?alt=sse&key=${encodeURIComponent(GEMINI_API_KEY)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
@@ -85,15 +85,38 @@ Format your answer:
         throw new Error(`API Error ${response.status}: ${errorMessage}`);
       }
 
-      const responseData = await response.json();
-      const assistantAnswer = responseData.candidates?.[0]?.content?.parts?.[0]?.text;
+      setLoading(false); // Stop asking the system to show 'loading', since we have the first byte.
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let done = false;
+      let streamedAnswer = '';
 
-      if (!assistantAnswer) {
-        throw new Error('No response received from the API. Please try again.');
+      while (!done) {
+        const { value, done: doneReading } = await reader.read();
+        done = doneReading;
+        if (value) {
+          const chunkString = decoder.decode(value, { stream: true });
+          const lines = chunkString.split('\n').filter((line) => line.trim() !== '');
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.replace('data: ', '');
+              try {
+                const parsedData = JSON.parse(data);
+                const textChunk = parsedData.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (textChunk) {
+                    streamedAnswer += textChunk;
+                    setAnswer(streamedAnswer);
+                }
+              } catch (e) {
+                // Not a valid JSON chunk, might just be standard event structure data
+                console.warn('Could not parse Gemini chunk string:', data);
+              }
+            }
+          }
+        }
       }
 
-      setAnswer(assistantAnswer);
-      return assistantAnswer;
+      return streamedAnswer;
     } catch (err) {
       console.error('API Error:', err);
       if (err.name === 'AbortError') {

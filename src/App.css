@@ -1039,6 +1039,10 @@ textarea:disabled {
   animation-delay: 0.3s;
 }
 
+.formatted-response>*:nth-child(n+7) {
+  animation-delay: 0.35s;
+}
+
 .formatted-response>*:nth-child(7) {
   animation-delay: 0.35s;
 }
