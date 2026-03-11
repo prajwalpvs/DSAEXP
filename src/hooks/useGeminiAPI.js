@@ -7,7 +7,7 @@ export function useGeminiAPI() {
   const [answer, setAnswer] = useState('');
   const [lastApiCall, setLastApiCall] = useState(0);
 
-  const generateAnswer = async (question, difficulty) => {
+  const generateAnswer = async (question, difficulty, language = 'python') => {
     // Validate API key
     if (GEMINI_API_KEY === 'YOUR_API_KEY_HERE' || !GEMINI_API_KEY) {
       setError('⚠️ API Key not configured. Please create a .env file and add VITE_GEMINI_API_KEY.');
@@ -33,12 +33,13 @@ export function useGeminiAPI() {
         advanced: `Include optimization techniques. Discuss edge cases. Compare different approaches.`
       };
 
+      const capitalizedLanguage = language.charAt(0).toUpperCase() + language.slice(1);
       const systemPrompt = `You are an expert teacher explaining DSA and LeetCode problems. 
 Difficulty level: ${difficulty.toUpperCase()} - ${difficultyGuides[difficulty] || difficultyGuides.beginner}
 
 Important instructions:
 1. Match the difficulty level above.
-2. Always provide Python code examples that are clear and well-commented.
+2. Always provide ${capitalizedLanguage} code examples that are clear and well-commented.
 3. VISUAL AID REQUIREMENT: If the concept is visual (Trees, Graphs, Sorting, Arrays, Linked Lists), you MUST provide a professional SVG diagram.
 4. SVG DIAGRAM RULES:
    - Use a simple, clean, modern style.
@@ -53,7 +54,7 @@ Format your answer:
 - Brief explanation
 - SVG Diagram (if applicable)
 - Step-by-step breakdown
-- Python code example (wrap in \`\`\`python)
+- ${capitalizedLanguage} code example (wrap in \`\`\`${language.toLowerCase()})
 - Complexity Analysis (Time & Space)
 - Key tips and edge cases`;
 
@@ -130,5 +131,54 @@ Format your answer:
     }
   };
 
-  return { generateAnswer, answer, setAnswer, loading, error, setError };
+  const generateQuiz = async (topic, solutionText) => {
+    setLoading(true);
+    setError('');
+    try {
+      const prompt = `Based on the following DSA solution for "${topic}", generate 3 multiple-choice questions to test the user's understanding of the time/space complexity and core logic.
+      
+      Solution Content:
+      ${solutionText.substring(0, 1500)}
+
+      Return ONLY a valid JSON array of objects with this structure:
+      [
+        {
+          "question": "The question text",
+          "options": ["Option A", "Option B", "Option C", "Option D"],
+          "correctAnswer": 0, // index of correct option
+          "explanation": "Brief explanation of why this is correct"
+        }
+      ]`;
+
+      const requestBody = {
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          response_mime_type: "application/json",
+        }
+      };
+
+      // Use the standard non-streaming URL for quiz generation (simpler to parse JSON)
+      const nonStreamingUrl = GEMINI_API_URL.replace('streamGenerateContent', 'generateContent');
+      
+      const response = await fetch(`${nonStreamingUrl}?key=${encodeURIComponent(GEMINI_API_KEY)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) throw new Error('Failed to generate quiz');
+
+      const data = await response.json();
+      const quizJson = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      return JSON.parse(quizJson);
+    } catch (err) {
+      console.error('Quiz Error:', err);
+      setError('Failed to generate quiz. Please try again.');
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { generateAnswer, generateQuiz, answer, setAnswer, loading, error, setError };
 }

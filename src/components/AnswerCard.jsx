@@ -2,15 +2,20 @@ import React, { useState } from 'react';
 import FormattedResponseRenderer from './FormattedResponseRenderer';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import QuizModal from './QuizModal';
 
 export default function AnswerCard({
   answer,
   toggleFavorite,
   question,
   favorites,
-  showToast
+  showToast,
+  generateQuiz
 }) {
   const [copied, setCopied] = useState(false);
+  const [quizData, setQuizData] = useState(null);
+  const [showQuiz, setShowQuiz] = useState(false);
+  const [quizLoading, setQuizLoading] = useState(false);
 
   // Copy answer to clipboard
   const copyToClipboard = async () => {
@@ -69,6 +74,21 @@ export default function AnswerCard({
     showToast('📄 Markdown file downloaded!');
   };
 
+  const handleStartQuiz = async () => {
+    setQuizLoading(true);
+    const data = await generateQuiz(question, answer);
+    setQuizLoading(false);
+    if (data) {
+      setQuizData(data);
+      setShowQuiz(true);
+    }
+  };
+
+  const onQuizComplete = (score) => {
+    setShowQuiz(false);
+    // You could add logic here to reward XP based on score
+  };
+
   if (!answer) return null;
 
   return (
@@ -90,6 +110,14 @@ export default function AnswerCard({
         <button className="export-btn" onClick={exportAsMarkdown}>
           📄 Markdown
         </button>
+        <button 
+          className="export-btn" 
+          onClick={handleStartQuiz} 
+          disabled={quizLoading}
+          style={{ background: 'var(--accent-subtle)', color: 'var(--primary)' }}
+        >
+          {quizLoading ? '⏳ Loading...' : '🎓 Test Knowledge'}
+        </button>
         <button
           className="heart-btn-main"
           onClick={() => toggleFavorite(question)}
@@ -100,6 +128,14 @@ export default function AnswerCard({
       <div className="result">
         <FormattedResponseRenderer content={answer} />
       </div>
+
+      {showQuiz && quizData && (
+        <QuizModal 
+          quizData={quizData} 
+          onClose={() => setShowQuiz(false)} 
+          onComplete={onQuizComplete}
+        />
+      )}
     </div>
   );
 }

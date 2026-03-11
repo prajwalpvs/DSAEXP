@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function Header({ difficulty, setDifficulty, darkMode, setDarkMode }) {
+export default function Header({ difficulty, setDifficulty, darkMode, setDarkMode, language, setLanguage }) {
   return (
     <nav className="nav-bar">
       <div className="nav-brand">
@@ -15,6 +15,18 @@ export default function Header({ difficulty, setDifficulty, darkMode, setDarkMod
         </span>
       </div>
       <div className="nav-controls">
+        <select
+          className="difficulty-select"
+          value={language}
+          onChange={(e) => setLanguage(e.target.value)}
+          aria-label="Select programming language"
+        >
+          <option value="python">🐍 Python</option>
+          <option value="java">☕ Java</option>
+          <option value="cpp">⚙️ C++</option>
+          <option value="javascript">🟨 JavaScript</option>
+          <option value="sql">💾 SQL</option>
+        </select>
         <select
           className="difficulty-select"
           value={difficulty}

@@ -3,7 +3,8 @@ import { useState, useEffect } from 'react';
 // Hooks & Utils
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useGeminiAPI } from './hooks/useGeminiAPI';
-import { STORAGE_KEYS, SAMPLE_QUESTIONS_CATEGORIZED, DSA_TOPICS } from './utils/constants';
+import { useGamification } from './hooks/useGamification';
+import { STORAGE_KEYS, SAMPLE_QUESTIONS_CATEGORIZED } from './utils/constants';
 
 // Components
 import Header from './components/Header';
@@ -20,10 +21,16 @@ export default function App() {
   
   // Custom Hooks mapped
   const { generateAnswer, answer, setAnswer, loading, error, setError } = useGeminiAPI();
+  const gamification = useGamification();
   const [history, setHistory] = useLocalStorage(STORAGE_KEYS.QUESTION_HISTORY, []);
   const [favorites, setFavorites] = useLocalStorage(STORAGE_KEYS.FAVORITES, []);
   const [darkMode, setDarkMode] = useLocalStorage(STORAGE_KEYS.DARK_MODE, false);
   const [difficulty, setDifficulty] = useLocalStorage(STORAGE_KEYS.DIFFICULTY, 'beginner');
+  const [language, setLanguage] = useLocalStorage(STORAGE_KEYS.LANGUAGE, 'python');
+  const [curriculumProgress, setCurriculumProgress] = useLocalStorage(STORAGE_KEYS.CURRICULUM_PROGRESS, {});
+
+  // For tracking which curriculum category the user is currently practicing
+  const [lastRequestedCategoryId, setLastRequestedCategoryId] = useState(null);
 
   // UI state variables
   const [showHistory, setShowHistory] = useState(false);
@@ -108,6 +115,18 @@ export default function App() {
     setShowHistory(false);
   };
 
+  // Triggered when a curriculum topic is clicked
+  const handlePracticeNext = (topic) => {
+    setQuestion(`Give me a LeetCode style question for ${topic.name}`);
+    setLastRequestedCategoryId(topic.id);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleResetCurriculum = () => {
+    setCurriculumProgress({});
+    showToast('♻️ Curriculum progress reset');
+  };
+
     // Validate input before API call
   const handleGenerateClick = async () => {
     const trimmedQuestion = (question || '').trim();
@@ -128,10 +147,26 @@ export default function App() {
     }
 
     // Await answer generation from hook
-    const result = await generateAnswer(trimmedQuestion, difficulty);
+    const result = await generateAnswer(trimmedQuestion, difficulty, language);
     if (result) {
         saveToHistory(trimmedQuestion, result);
-        showToast('✅ Answer generated successfully!');
+        
+        // Add XP reward for solving
+        const newBadges = gamification.addXp(10);
+        if (newBadges.length > 0) {
+          showToast(`🏆 You unlocked a new badge: ${newBadges[0].name}!`);
+        } else {
+          showToast('✅ Answer generated successfully! +10 XP');
+        }
+
+        // Update curriculum progress if a specific category was requested
+        if (lastRequestedCategoryId) {
+          setCurriculumProgress(prev => ({
+            ...prev,
+            [lastRequestedCategoryId]: (prev[lastRequestedCategoryId] || 0) + 1
+          }));
+          setLastRequestedCategoryId(null);
+        }
     }
   };
 
@@ -149,6 +184,8 @@ export default function App() {
         setDifficulty={setDifficulty} 
         darkMode={darkMode} 
         setDarkMode={setDarkMode} 
+        language={language}
+        setLanguage={setLanguage}
       />
 
       {/* ===== DASHBOARD (Sidebar + Main) ===== */}
@@ -163,6 +200,15 @@ export default function App() {
           loadFromHistory={loadFromHistory}
           clearHistory={clearHistory}
           toggleFavorite={toggleFavorite}
+          xp={gamification.xp}
+          streak={gamification.streak}
+          badges={gamification.badges}
+          currentLevel={gamification.currentLevel}
+          xpProgress={gamification.xpProgress}
+          xpForNextLevel={gamification.xpForNextLevel}
+          curriculumProgress={curriculumProgress}
+          onPracticeNext={handlePracticeNext}
+          onResetCurriculum={handleResetCurriculum}
         />
 
         {/* ===== MAIN CONTENT ===== */}
@@ -213,6 +259,7 @@ export default function App() {
             question={question}
             favorites={favorites}
             showToast={showToast}
+            generateQuiz={generateQuiz}
           />
 
         </main>
