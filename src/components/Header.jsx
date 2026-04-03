@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 
 export default function Header({ difficulty, setDifficulty, darkMode, setDarkMode, language, setLanguage }) {
   return (
@@ -16,16 +16,16 @@ export default function Header({ difficulty, setDifficulty, darkMode, setDarkMod
       </div>
       <div className="nav-controls">
         <select
-          className="difficulty-select"
+          className="difficulty-select language-select"
           value={language}
           onChange={(e) => setLanguage(e.target.value)}
           aria-label="Select programming language"
         >
-          <option value="python">🐍 Python</option>
-          <option value="java">☕ Java</option>
-          <option value="cpp">⚙️ C++</option>
-          <option value="javascript">🟨 JavaScript</option>
-          <option value="sql">💾 SQL</option>
+          <option value="python">Python</option>
+          <option value="java">Java</option>
+          <option value="cpp">C++</option>
+          <option value="javascript">JavaScript</option>
+          <option value="sql">SQL</option>
         </select>
         <select
           className="difficulty-select"
@@ -33,16 +33,16 @@ export default function Header({ difficulty, setDifficulty, darkMode, setDarkMod
           onChange={(e) => setDifficulty(e.target.value)}
           aria-label="Select difficulty level"
         >
-          <option value="beginner">🌱 Beginner</option>
-          <option value="intermediate">⚡ Intermediate</option>
-          <option value="advanced">🚀 Advanced</option>
+          <option value="beginner">Beginner</option>
+          <option value="intermediate">Intermediate</option>
+          <option value="advanced">Advanced</option>
         </select>
         <button
           className="theme-toggle-btn"
           onClick={() => setDarkMode(!darkMode)}
           title="Toggle dark mode"
         >
-          {darkMode ? '☀️' : '🌙'}
+          {darkMode ? 'Light' : 'Dark'}
         </button>
       </div>
     </nav>

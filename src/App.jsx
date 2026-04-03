@@ -1,204 +1,176 @@
-import { useState, useEffect } from 'react';
+﻿import { useEffect, useState } from 'react';
+import './App.css';
 
-// Hooks & Utils
-import { useLocalStorage } from './hooks/useLocalStorage';
-import { useGeminiAPI } from './hooks/useGeminiAPI';
-import { useGamification } from './hooks/useGamification';
-import { STORAGE_KEYS, SAMPLE_QUESTIONS_CATEGORIZED } from './utils/constants';
-
-// Components
+import AnswerCard from './components/AnswerCard';
+import ChatInput from './components/ChatInput';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
-import ChatInput from './components/ChatInput';
-import AnswerCard from './components/AnswerCard';
+import { useAppState } from './hooks/useAppState';
+import { useGamification } from './hooks/useGamification';
+import { useGeminiAPI } from './hooks/useGeminiAPI';
+import { SAMPLE_QUESTIONS_CATEGORIZED } from './utils/constants';
 
-import './App.css';
+const HERO_FEATURES = [
+  {
+    title: 'Flexible answers',
+    description: 'Switch difficulty and language without rewriting the question from scratch.'
+  },
+  {
+    title: 'Reliable study trail',
+    description: 'Keep favorites, revisit earlier answers, and pick up from your last topic.'
+  },
+  {
+    title: 'Fast revision',
+    description: 'Turn a generated explanation into a short quiz and export notes when needed.'
+  }
+];
+
 export default function App() {
-  // ============================================
-  // STATE MANAGEMENT
-  // ============================================
   const [question, setQuestion] = useState('');
-  
-  // Custom Hooks mapped
-  const { generateAnswer, answer, setAnswer, loading, error, setError } = useGeminiAPI();
-  const gamification = useGamification();
-  const [history, setHistory] = useLocalStorage(STORAGE_KEYS.QUESTION_HISTORY, []);
-  const [favorites, setFavorites] = useLocalStorage(STORAGE_KEYS.FAVORITES, []);
-  const [darkMode, setDarkMode] = useLocalStorage(STORAGE_KEYS.DARK_MODE, false);
-  const [difficulty, setDifficulty] = useLocalStorage(STORAGE_KEYS.DIFFICULTY, 'beginner');
-  const [language, setLanguage] = useLocalStorage(STORAGE_KEYS.LANGUAGE, 'python');
-  const [curriculumProgress, setCurriculumProgress] = useLocalStorage(STORAGE_KEYS.CURRICULUM_PROGRESS, {});
-
-  // For tracking which curriculum category the user is currently practicing
-  const [lastRequestedCategoryId, setLastRequestedCategoryId] = useState(null);
-
-  // UI state variables
-  const [showHistory, setShowHistory] = useState(false);
-  const [showFavorites, setShowFavorites] = useState(false);
   const [toast, setToast] = useState('');
   const [toastTimeout, setToastTimeout] = useState(null);
+  const [lastRequestedCategoryId, setLastRequestedCategoryId] = useState(null);
 
-  // ============================================
-  // HELPER FUNCTIONS
-  // ============================================
+  const {
+    history,
+    favorites,
+    darkMode,
+    difficulty,
+    language,
+    curriculumProgress,
+    setDarkMode,
+    setDifficulty,
+    setLanguage,
+    setCurriculumProgress,
+    saveToHistory,
+    clearHistory,
+    toggleFavorite
+  } = useAppState();
 
-  // Apply dark mode to document
+  const {
+    generateAnswer,
+    generateQuiz,
+    answer,
+    setAnswer,
+    loading,
+    error,
+    setError
+  } = useGeminiAPI();
+
+  const gamification = useGamification();
+
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
   }, [darkMode]);
 
-  // Show toast notification with proper cleanup
-  const showToast = (message) => {
-    // Clear previous timeout if exists
-    if (toastTimeout) clearTimeout(toastTimeout);
-
-    setToast(message);
-    const newTimeout = setTimeout(() => {
-      setToast('');
-      setToastTimeout(null);
-    }, 3000);
-    setToastTimeout(newTimeout);
-  };
-
-  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
-      if (toastTimeout) clearTimeout(toastTimeout);
+      if (toastTimeout) {
+        clearTimeout(toastTimeout);
+      }
     };
   }, [toastTimeout]);
 
-  // Save to history with error handling
-  const saveToHistory = (q, a) => {
-    try {
-      const newEntry = {
-        id: Date.now(),
-        question: q,
-        answer: a,
-        timestamp: new Date().toLocaleString()
-      };
-      const updated = [newEntry, ...history].slice(0, 10);
-      setHistory(updated);
-    } catch (err) {
-      if (err.name === 'QuotaExceededError') {
-        showToast('⚠️ Storage full. Clearing old history.');
-        setHistory([]);
-      } else {
-        console.error('Error saving to history:', err);
-      }
+  const showToast = (message) => {
+    if (toastTimeout) {
+      clearTimeout(toastTimeout);
     }
+
+    setToast(message);
+    const nextTimeout = setTimeout(() => {
+      setToast('');
+      setToastTimeout(null);
+    }, 3200);
+    setToastTimeout(nextTimeout);
   };
 
-  // Clear history
-  const clearHistory = () => {
-    if (window.confirm('Are you sure you want to clear all history?')) {
-      setHistory([]);
-      showToast('🗑️ History cleared');
-      setShowHistory(false);
-    }
+  const loadFromHistory = (savedQuestion, savedAnswer) => {
+    setQuestion(savedQuestion);
+    setAnswer(savedAnswer);
+    setError('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Toggle favorite
-  const toggleFavorite = (q) => {
-    if (favorites.includes(q)) {
-      const updated = favorites.filter(fav => fav !== q);
-      setFavorites(updated);
-    } else {
-      const updated = [...favorites, q];
-      setFavorites(updated);
-    }
-  };
-
-  // Load from history
-  const loadFromHistory = (q, a) => {
-    setQuestion(q);
-    setAnswer(a);
-    setShowHistory(false);
-  };
-
-  // Triggered when a curriculum topic is clicked
   const handlePracticeNext = (topic) => {
     setQuestion(`Give me a LeetCode style question for ${topic.name}`);
     setLastRequestedCategoryId(topic.id);
+    setAnswer('');
+    setError('');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleResetCurriculum = () => {
     setCurriculumProgress({});
-    showToast('♻️ Curriculum progress reset');
+    showToast('Curriculum progress reset.');
   };
 
-    // Validate input before API call
   const handleGenerateClick = async () => {
-    const trimmedQuestion = (question || '').trim();
+    const trimmedQuestion = question.trim();
 
-    if (trimmedQuestion.length === 0) {
-      setError('❌ Please enter a DSA or LeetCode question.');
+    if (!trimmedQuestion) {
+      setError('Please enter a DSA or LeetCode question.');
       return;
     }
 
     if (trimmedQuestion.length < 5) {
-      setError('❌ Question must be at least 5 characters long.');
+      setError('Question must be at least 5 characters long.');
       return;
     }
 
     if (trimmedQuestion.length > 2000) {
-      setError(`❌ Question must be less than 2000 characters. Current: ${trimmedQuestion.length}`);
+      setError(`Question must be less than 2000 characters. Current: ${trimmedQuestion.length}`);
       return;
     }
 
-    // Await answer generation from hook
     const result = await generateAnswer(trimmedQuestion, difficulty, language);
-    if (result) {
-        saveToHistory(trimmedQuestion, result);
-        
-        // Add XP reward for solving
-        const newBadges = gamification.addXp(10);
-        if (newBadges.length > 0) {
-          showToast(`🏆 You unlocked a new badge: ${newBadges[0].name}!`);
-        } else {
-          showToast('✅ Answer generated successfully! +10 XP');
-        }
+    if (!result) {
+      return;
+    }
 
-        // Update curriculum progress if a specific category was requested
-        if (lastRequestedCategoryId) {
-          setCurriculumProgress(prev => ({
-            ...prev,
-            [lastRequestedCategoryId]: (prev[lastRequestedCategoryId] || 0) + 1
-          }));
-          setLastRequestedCategoryId(null);
-        }
+    saveToHistory(trimmedQuestion, result);
+
+    const newBadges = gamification.addXp(lastRequestedCategoryId ? 15 : 10);
+    if (newBadges.length > 0) {
+      showToast(`New badge unlocked: ${newBadges[0].name}`);
+    } else {
+      showToast(lastRequestedCategoryId ? 'Answer ready. Progress updated.' : 'Answer ready.');
+    }
+
+    if (lastRequestedCategoryId) {
+      setCurriculumProgress((previous) => ({
+        ...previous,
+        [lastRequestedCategoryId]: (previous[lastRequestedCategoryId] || 0) + 1
+      }));
+      setLastRequestedCategoryId(null);
     }
   };
 
-  // ============================================
-  // RENDER THE COMPONENT
-  // ============================================
+  const primaryPrompt = SAMPLE_QUESTIONS_CATEGORIZED.popular[0]?.text || 'Two Sum problem';
+
   return (
     <div className="app-wrapper">
-      {/* Toast Notification */}
       {toast && <div className="toast">{toast}</div>}
 
-      {/* ===== TOP NAV BAR ===== */}
-      <Header 
-        difficulty={difficulty} 
-        setDifficulty={setDifficulty} 
-        darkMode={darkMode} 
-        setDarkMode={setDarkMode} 
+      <Header
+        difficulty={difficulty}
+        setDifficulty={setDifficulty}
+        darkMode={darkMode}
+        setDarkMode={setDarkMode}
         language={language}
         setLanguage={setLanguage}
       />
 
-      {/* ===== DASHBOARD (Sidebar + Main) ===== */}
-      <div className="dashboard">
-
-        {/* ===== SIDEBAR ===== */}
-        <Sidebar 
+      <div className="dashboard-shell">
+        <Sidebar
           history={history}
           favorites={favorites}
           difficulty={difficulty}
           setQuestion={setQuestion}
           loadFromHistory={loadFromHistory}
-          clearHistory={clearHistory}
+          clearHistory={() => {
+            clearHistory();
+            showToast('History cleared.');
+          }}
           toggleFavorite={toggleFavorite}
           xp={gamification.xp}
           streak={gamification.streak}
@@ -211,20 +183,38 @@ export default function App() {
           onResetCurriculum={handleResetCurriculum}
         />
 
-        {/* ===== MAIN CONTENT ===== */}
         <main className="main-content">
-
-          {/* Welcome Hero — only when no answer is displayed */}
-          {!answer && !loading && !error && (
-            <div className="welcome-hero">
-              <div className="welcome-icon">💡</div>
-              <h2 className="welcome-title">What do you want to learn today?</h2>
-              <p className="welcome-subtitle">Ask any DSA question — from Two Sum to system design. Get step-by-step explanations, code, and diagrams.</p>
+          <section className="hero-panel">
+            <div className="hero-copy">
+              <span className="eyebrow">Study studio</span>
+              <h1 className="hero-title">Practice smarter with a cleaner workspace.</h1>
+              <p className="hero-subtitle">
+                Ask a question, save the useful answers, and work through core DSA topics without
+                the page feeling noisy or overdesigned.
+              </p>
             </div>
-          )}
+            <div className="hero-actions">
+              <button className="hero-primary-action" onClick={() => setQuestion(primaryPrompt)}>
+                Start with a classic prompt
+              </button>
+              <div className="hero-meta">
+                <span className="meta-chip">{history.length} saved answers</span>
+                <span className="meta-chip">{favorites.length} favorites</span>
+                <span className="meta-chip">Level {gamification.currentLevel}</span>
+              </div>
+            </div>
+          </section>
 
-          {/* Ask Card */}
-          <ChatInput 
+          <section className="hero-feature-grid">
+            {HERO_FEATURES.map((feature) => (
+              <article key={feature.title} className="feature-card">
+                <h2>{feature.title}</h2>
+                <p>{feature.description}</p>
+              </article>
+            ))}
+          </section>
+
+          <ChatInput
             question={question}
             setQuestion={setQuestion}
             loading={loading}
@@ -233,7 +223,6 @@ export default function App() {
             favorites={favorites}
           />
 
-          {/* Loading */}
           {loading && (
             <div className="loading">
               <div className="loading-dots">
@@ -241,19 +230,13 @@ export default function App() {
                 <span></span>
                 <span></span>
               </div>
-              <span className="loading-text">Generating your answer…</span>
+              <span className="loading-text">Generating your answer...</span>
             </div>
           )}
 
-          {/* Error */}
-          {error && (
-            <div className="error">
-              {error}
-            </div>
-          )}
+          {error && <div className="error">{error}</div>}
 
-          {/* Answer Card */}
-          <AnswerCard 
+          <AnswerCard
             answer={answer}
             toggleFavorite={toggleFavorite}
             question={question}
@@ -261,19 +244,16 @@ export default function App() {
             showToast={showToast}
             generateQuiz={generateQuiz}
           />
-
         </main>
       </div>
 
-      {/* Floating Action Button */}
       <button
         className="fab"
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         title="Scroll to top"
       >
-        ↑
+        Top
       </button>
     </div>
   );
 }
-

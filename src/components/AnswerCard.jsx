@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import FormattedResponseRenderer from './FormattedResponseRenderer';
+﻿import React, { useState } from 'react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import FormattedResponseRenderer from './FormattedResponseRenderer';
 import QuizModal from './QuizModal';
 
 export default function AnswerCard({
@@ -17,7 +17,6 @@ export default function AnswerCard({
   const [showQuiz, setShowQuiz] = useState(false);
   const [quizLoading, setQuizLoading] = useState(false);
 
-  // Copy answer to clipboard
   const copyToClipboard = async () => {
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -34,19 +33,20 @@ export default function AnswerCard({
       }
 
       setCopied(true);
-      showToast('✅ Answer copied to clipboard!');
+      showToast('Answer copied to clipboard.');
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      showToast('❌ Failed to copy. Try again.');
+      showToast('Failed to copy. Try again.');
       console.error('Clipboard error:', err);
     }
   };
 
-  // Export as PDF
   const exportAsPDF = async () => {
     try {
       const element = document.querySelector('.result');
-      if (!element) return;
+      if (!element) {
+        return;
+      }
 
       const canvas = await html2canvas(element);
       const pdf = new jsPDF();
@@ -55,41 +55,38 @@ export default function AnswerCard({
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
       pdf.save(`dsa-answer-${Date.now()}.pdf`);
-      showToast('📥 PDF downloaded successfully!');
+      showToast('PDF downloaded successfully.');
     } catch (err) {
-      showToast('❌ Error exporting PDF');
+      showToast('Error exporting PDF.');
       console.error(err);
     }
   };
 
-  // Export as Markdown
   const exportAsMarkdown = () => {
     const content = `# ${question}\n\n${answer}`;
     const blob = new Blob([content], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `dsa-answer-${Date.now()}.md`;
-    a.click();
-    showToast('📄 Markdown file downloaded!');
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `dsa-answer-${Date.now()}.md`;
+    anchor.click();
+    showToast('Markdown file downloaded.');
   };
 
   const handleStartQuiz = async () => {
     setQuizLoading(true);
     const data = await generateQuiz(question, answer);
     setQuizLoading(false);
+
     if (data) {
       setQuizData(data);
       setShowQuiz(true);
     }
   };
 
-  const onQuizComplete = (score) => {
-    setShowQuiz(false);
-    // You could add logic here to reward XP based on score
-  };
-
-  if (!answer) return null;
+  if (!answer) {
+    return null;
+  }
 
   return (
     <div className="card result-wrapper">
@@ -102,27 +99,26 @@ export default function AnswerCard({
           onClick={copyToClipboard}
           aria-label="Copy answer to clipboard"
         >
-          {copied ? '✅ Copied!' : '📋 Copy'}
+          {copied ? 'Copied' : 'Copy'}
         </button>
         <button className="export-btn" onClick={exportAsPDF}>
-          📥 PDF
+          PDF
         </button>
         <button className="export-btn" onClick={exportAsMarkdown}>
-          📄 Markdown
+          Markdown
         </button>
-        <button 
-          className="export-btn" 
-          onClick={handleStartQuiz} 
+        <button
+          className="export-btn quiz-action-btn"
+          onClick={handleStartQuiz}
           disabled={quizLoading}
-          style={{ background: 'var(--accent-subtle)', color: 'var(--primary)' }}
         >
-          {quizLoading ? '⏳ Loading...' : '🎓 Test Knowledge'}
+          {quizLoading ? 'Preparing quiz...' : 'Test knowledge'}
         </button>
         <button
           className="heart-btn-main"
           onClick={() => toggleFavorite(question)}
         >
-          {favorites.includes(question) ? '❤️ Favorited' : '🤍 Favorite'}
+          {favorites.includes(question) ? 'Saved to favorites' : 'Save to favorites'}
         </button>
       </div>
       <div className="result">
@@ -130,10 +126,10 @@ export default function AnswerCard({
       </div>
 
       {showQuiz && quizData && (
-        <QuizModal 
-          quizData={quizData} 
-          onClose={() => setShowQuiz(false)} 
-          onComplete={onQuizComplete}
+        <QuizModal
+          quizData={quizData}
+          onClose={() => setShowQuiz(false)}
+          onComplete={() => setShowQuiz(false)}
         />
       )}
     </div>

@@ -1,13 +1,13 @@
-import React from 'react';
+﻿import React from 'react';
 import { SAMPLE_QUESTIONS_CATEGORIZED } from '../utils/constants';
 
-export default function ChatInput({ 
-  question, 
-  setQuestion, 
-  loading, 
-  handleGenerateClick, 
-  toggleFavorite, 
-  favorites 
+export default function ChatInput({
+  question,
+  setQuestion,
+  loading,
+  handleGenerateClick,
+  toggleFavorite,
+  favorites
 }) {
   return (
     <div className="card ask-card">
@@ -25,7 +25,7 @@ export default function ChatInput({
           disabled={loading}
         />
         <div className="samples-section">
-          <p><span className="trending-badge">🔥 Trending</span></p>
+          <p><span className="trending-badge">Popular prompts</span></p>
           <div className="samples-grid">
             {SAMPLE_QUESTIONS_CATEGORIZED.popular.map((q, i) => (
               <button
@@ -45,7 +45,7 @@ export default function ChatInput({
             disabled={loading}
             className="generate-btn"
           >
-            {loading ? '⏳ Generating...' : '✨ Ask AI'}
+            {loading ? 'Generating...' : 'Explain it'}
           </button>
           {question && (
             <button
@@ -53,7 +53,7 @@ export default function ChatInput({
               onClick={() => toggleFavorite(question)}
               title={favorites.includes(question) ? 'Remove from favorites' : 'Add to favorites'}
             >
-              {favorites.includes(question) ? '❤️ Favorited' : '🤍 Favorite'}
+              {favorites.includes(question) ? 'Saved to favorites' : 'Save to favorites'}
             </button>
           )}
         </div>
