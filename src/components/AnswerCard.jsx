@@ -10,7 +10,8 @@ export default function AnswerCard({
   question,
   favorites,
   showToast,
-  generateQuiz
+  generateQuiz,
+  onQuizComplete
 }) {
   const [copied, setCopied] = useState(false);
   const [quizData, setQuizData] = useState(null);
@@ -129,7 +130,7 @@ export default function AnswerCard({
         <QuizModal
           quizData={quizData}
           onClose={() => setShowQuiz(false)}
-          onComplete={() => setShowQuiz(false)}
+          onComplete={(score) => { setShowQuiz(false); onQuizComplete?.(score); }}
         />
       )}
     </div>
