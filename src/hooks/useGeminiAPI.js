@@ -5,6 +5,9 @@ import {
   GEMINI_API_KEY,
   GEMINI_API_URL
 } from '../utils/constants';
+import { findOfflineAnswer } from '../utils/offlineAnswers';
+
+const NO_API_KEY = !GEMINI_API_KEY || GEMINI_API_KEY === 'YOUR_API_KEY_HERE';
 
 export function useGeminiAPI() {
   const [loading, setLoading] = useState(false);
@@ -13,21 +16,36 @@ export function useGeminiAPI() {
   const [lastApiCall, setLastApiCall] = useState(0);
 
   const generateAnswer = async (question, difficulty, language = 'python') => {
-    if (GEMINI_API_KEY === 'YOUR_API_KEY_HERE' || !GEMINI_API_KEY) {
-      setError('API key not configured. Add VITE_GEMINI_API_KEY to your .env file.');
+    setError('');
+    setAnswer('');
+    setLoading(true);
+
+    // Try offline answer first
+    const offline = findOfflineAnswer(question);
+    if (offline) {
+      // Simulate a brief loading feel
+      await new Promise(r => setTimeout(r, 300));
+      setAnswer(offline.answer);
+      setLoading(false);
+      return offline.answer;
+    }
+
+    if (NO_API_KEY) {
+      setLoading(false);
+      setError(
+        'No answer found for that topic in the offline library, and no API key is configured.\n\n' +
+        'Try one of the popular prompts, or add VITE_GEMINI_API_KEY to a .env file to enable AI answers.'
+      );
       return null;
     }
 
     const now = Date.now();
     if (now - lastApiCall < API_RATE_LIMIT_MS) {
+      setLoading(false);
       setError('Please wait a moment before making another request.');
       return null;
     }
     setLastApiCall(now);
-
-    setError('');
-    setAnswer('');
-    setLoading(true);
 
     try {
       const difficultyGuides = {
@@ -85,7 +103,6 @@ Format your answer:
         throw new Error('No response stream received from the API.');
       }
 
-      setLoading(false);
       const reader = response.body.getReader();
       const decoder = new TextDecoder('utf-8');
       let done = false;
@@ -107,7 +124,12 @@ Format your answer:
             continue;
           }
 
-          const data = line.replace('data: ', '');
+          const data = line.slice(6);
+          if (data === '[DONE]') {
+            done = true;
+            break;
+          }
+
           try {
             const parsedData = JSON.parse(data);
             const textChunk = parsedData.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -136,8 +158,14 @@ Format your answer:
   };
 
   const generateQuiz = async (topic, solutionText) => {
-    if (GEMINI_API_KEY === 'YOUR_API_KEY_HERE' || !GEMINI_API_KEY) {
-      setError('API key not configured. Add VITE_GEMINI_API_KEY to your .env file.');
+    // Try offline quiz first
+    const offline = findOfflineAnswer(topic);
+    if (offline?.quiz) {
+      return offline.quiz;
+    }
+
+    if (NO_API_KEY) {
+      setError('No offline quiz available for this topic and no API key is configured.');
       return null;
     }
 

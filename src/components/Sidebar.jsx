@@ -118,7 +118,7 @@ export default function Sidebar({
         </div>
         {history.length > 0 ? (
           <div className="sidebar-list">
-            {history.slice(0, 5).map((item) => (
+            {history.slice(0, 10).map((item) => (
               <button
                 key={item.id}
                 className="sidebar-list-item"

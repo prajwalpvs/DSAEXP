@@ -21,16 +21,16 @@ export const BADGES_MAP = [
 export const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || 'YOUR_API_KEY_HERE';
 export const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent';
 export const API_REQUEST_TIMEOUT = 30000; // 30 seconds
-export const API_RATE_LIMIT_MS = 60000; // 1 minute between requests
+export const API_RATE_LIMIT_MS = 15000; // 15 seconds between requests
 
 // Organized by difficulty and category for better UX
 export const SAMPLE_QUESTIONS_CATEGORIZED = {
   popular: [
-    { text: "Two Sum problem", emoji: "01" },
-    { text: "Reverse linked list", emoji: "02" },
-    { text: "Binary tree traversals", emoji: "03" },
-    { text: "Climbing stairs DP", emoji: "04" },
-    { text: "Valid parentheses", emoji: "05" }
+    { text: "Two Sum problem", emoji: "🔢" },
+    { text: "Reverse linked list", emoji: "🔗" },
+    { text: "Binary tree traversals", emoji: "🌳" },
+    { text: "Climbing stairs DP", emoji: "🪜" },
+    { text: "Valid parentheses", emoji: "🔑" }
   ]
 };
 

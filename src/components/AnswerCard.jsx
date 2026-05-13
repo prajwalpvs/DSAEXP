@@ -20,19 +20,7 @@ export default function AnswerCard({
 
   const copyToClipboard = async () => {
     try {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(answer);
-      } else {
-        const textArea = document.createElement('textarea');
-        textArea.value = answer;
-        textArea.style.position = 'fixed';
-        textArea.style.left = '-999999px';
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-      }
-
+      await navigator.clipboard.writeText(answer);
       setCopied(true);
       showToast('Answer copied to clipboard.');
       setTimeout(() => setCopied(false), 2000);

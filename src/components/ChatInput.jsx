@@ -1,5 +1,7 @@
-﻿import React from 'react';
+import React from 'react';
 import { SAMPLE_QUESTIONS_CATEGORIZED } from '../utils/constants';
+
+const MAX_CHARS = 2000;
 
 export default function ChatInput({
   question,
@@ -9,6 +11,13 @@ export default function ChatInput({
   toggleFavorite,
   favorites
 }) {
+  const handleKeyDown = (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && !loading) {
+      e.preventDefault();
+      handleGenerateClick();
+    }
+  };
+
   return (
     <div className="card ask-card">
       <div className="card-header">
@@ -22,8 +31,13 @@ export default function ChatInput({
           rows="4"
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
+          onKeyDown={handleKeyDown}
           disabled={loading}
+          maxLength={MAX_CHARS}
         />
+        <div style={{ textAlign: 'right', fontSize: '0.75rem', color: question.length > MAX_CHARS * 0.9 ? '#ef4444' : 'var(--text-muted)', marginTop: '4px' }}>
+          {question.length}/{MAX_CHARS}
+        </div>
         <div className="samples-section">
           <p><span className="trending-badge">Popular prompts</span></p>
           <div className="samples-grid">
@@ -44,6 +58,7 @@ export default function ChatInput({
             onClick={handleGenerateClick}
             disabled={loading}
             className="generate-btn"
+            title="Explain it (Ctrl+Enter)"
           >
             {loading ? 'Generating...' : 'Explain it'}
           </button>
@@ -57,6 +72,9 @@ export default function ChatInput({
             </button>
           )}
         </div>
+        <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '6px' }}>
+          Tip: Press <kbd style={{ padding: '1px 5px', borderRadius: '3px', border: '1px solid var(--border-color)', fontSize: '0.7rem' }}>Ctrl+Enter</kbd> to submit
+        </p>
       </div>
     </div>
   );
